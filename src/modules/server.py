@@ -1,8 +1,7 @@
 from modules.models import *
-from sanic import Sanic, text, json
-from sanic.request import Request
-from sanic.response import HTTPResponse
+from sanic import Sanic, text, json, Request, Websocket
 from orjson import dumps, loads
+from queue import SimpleQueue
 
 def default_serializer(obj):
     match obj:
@@ -13,7 +12,13 @@ def default_serializer(obj):
 def custom_dumps(obj):
     return dumps(obj, default=default_serializer)
 
-app = Sanic("talaria_navigator", dumps=custom_dumps, loads=loads)
+class NavigatorContext:
+    requestedRoute: str
+    status: SimpleQueue = SimpleQueue()
+
+app = Sanic("talaria_navigator",
+    dumps=custom_dumps, loads=loads,
+    ctx=NavigatorContext())
 
 @app.get("/health")
 async def health(request: Request):
@@ -42,12 +47,25 @@ async def getPossibleRouteInfo(request: Request):
 
 @app.post("/route")
 async def setRoute(request: Request):
+    print(request.json)
     app.ctx.requestedRoute = request.json
+    app.ctx.status.put("Initializing")
     return json(request.json)
 
 @app.get("/routeStatus")
 async def getRouteStatus(request: Request):
-    return text(app.ctx.status)
+    return text(str(app.ctx.status))
+
+@app.websocket("/transitFeed")
+async def transitFeed(request: Request, ws: Websocket):
+    print("Connected to Control Panel")
+    stausesSent = 0
+    while True:
+        while not app.ctx.status.empty():
+            s = app.ctx.status.get()
+            print(f"Sending status '{s}'")
+            await ws.send(s)
+            stausesSent += 1
 
 @app.post("/confirmDelivery")
 async def confirmDelivery(request: Request):
