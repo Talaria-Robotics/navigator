@@ -1,0 +1,2 @@
+sanic >= 24.6.0
+svgpathtools >= 1.6.1
