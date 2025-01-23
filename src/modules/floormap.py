@@ -1,18 +1,35 @@
-from svgpathtools import parse_path
+from svgpathtools import parse_path, disvg, Path
+from numpy import arange
+from typing import Tuple
+import sys
+
+def _closestPointOnPath(path: Path, point: complex) -> Tuple[float, complex]:
+    closest = None
+    smallestDistance = sys.float_info.max
+
+    for t in arange(0, 1, 0.01):
+        pathPoint: complex = path.point(t)
+        distance = abs(pathPoint - point)
+        if distance < smallestDistance:
+            smallestDistance = distance
+            closest = (float(t), pathPoint)
+        
+    return closest
 
 class FloorMap:
-    def parse(self, filePath: str) -> None:
-        floormap_lines = []
+    def __init__(self, filePath: str):
+        floormapLines = []
         with open(filePath, "r") as file:
-            floormap_lines = file.readlines()
+            floormapLines = file.readlines()
         
         paths = []
-        for line in floormap_lines:
+        for line in floormapLines:
             path = parse_path(line)
             paths.append(path)
-            print(path)
+        
+        closeest = _closestPointOnPath(paths[0], complex(5, 5))
+        print(closeest)
 
 
 if __name__ == "__main__":
-    floormap = FloorMap()
-    floormap.parse(r".\maps\TestA.floormap")
+    floormap = FloorMap(r".\maps\TestA.floormap")
