@@ -34,7 +34,7 @@ class FloorMap:
                 elif currentSection == SECTION_ROOMS:
                     roomId, roomName = line.split(':')
                     roomId = roomId.strip()
-                    binName = binName.strip()
+                    roomName = roomName.strip()
                     self.rooms[roomId] = roomName
                 elif currentSection == SECTION_NODES:
                     nodeId, nodeCoords = line.split(':')
@@ -64,7 +64,10 @@ class FloorMap:
             svgStr += f"<path id=\"{pathId}\" d=\"{path.d()}\" stroke-width=\"0.25\" stroke=\"#C83737\" fill=\"transparent\" />"
         
         for nodeId, nodePoint in self.nodes.items():
-            svgStr += f"<circle id=\"{nodeId}\" cx=\"{nodePoint.real}\" cy=\"{nodePoint.imag}\" r=\"0.25\" fill=\"#500000\"/>"
+            nodeColor = "#500000"
+            if nodeId in self.rooms.keys():
+                nodeColor = "#005000"
+            svgStr += f"<circle id=\"{nodeId}\" cx=\"{nodePoint.real}\" cy=\"{nodePoint.imag}\" r=\"0.25\" fill=\"{nodeColor}\"/>"
         
         svgStr += "</g></svg>"
         return svgStr
