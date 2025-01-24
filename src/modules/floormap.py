@@ -5,12 +5,14 @@ class FloorMap:
     def __init__(self, filePath: str):
         SECTION_META = "[Meta]"
         SECTION_BINS = "[Bins]"
+        SECTION_ROOMS = "[Rooms]"
         SECTION_NODES = "[Nodes]"
         SECTION_PATHS = "[Paths]"
 
         self.name: str = None
         self.id: str = None
         self.bins: dict[int, str] = {}
+        self.rooms: dict[str, str] = {}
         self.nodes: dict[str, complex] = {}
         self.paths: dict[tuple[str, str], Path] = {}
 
@@ -35,6 +37,11 @@ class FloorMap:
                     binNum = int(binNum)
                     binName = binName.strip()
                     self.bins[binNum] = binName
+                elif currentSection == SECTION_ROOMS:
+                    roomId, roomName = line.split(':')
+                    roomId = roomId.strip()
+                    binName = binName.strip()
+                    self.rooms[roomId] = roomName
                 elif currentSection == SECTION_NODES:
                     nodeId, nodeCoords = line.split(':')
                     nodeId = nodeId.strip()

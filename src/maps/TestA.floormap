@@ -8,6 +8,12 @@ Small Test A
 3: Letter Slot 3
 10: Package Caddy
 
+[Rooms]
+mail: Mail Room
+room1: Room 1
+room2: Room 2
+room3: Room 3
+
 [Nodes]
 mail: 2, 3
 j1: 7, 5
