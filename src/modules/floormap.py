@@ -1,5 +1,10 @@
 from svgpathtools import parse_path, Path
 from nav_utils import bboxCombine
+from itertools import combinations
+import itertools
+
+from pathfinding.core.graph import Graph
+from pathfinding.finder.dijkstra import DijkstraFinder
 
 class FloorMap:
     def __init__(self, filePath: str):
@@ -48,7 +53,52 @@ class FloorMap:
                     pathEnd = self.nodes[pathEndId]
                     pathSvg = f"M {pathStart.real} {pathStart.imag} {pathSvg.strip()} L {pathEnd.real} {pathEnd.imag}"
                     self.paths[(pathStartId, pathEndId)] = parse_path(pathSvg)
+    
+    def planTrip(self, stopIds: list[str]) -> list[str]:
+        # Build graph
+        edges: list[list[any, any, float]] = []
+        for pathPoints, path in self.paths.items():
+            pathStartId, pathEndId = pathPoints
+            pathLength = path.length()
+            edges.append([pathStartId, pathEndId, pathLength])
         
+        # Compute the shortest path between each pair of stops
+        shortestPaths = {}
+        for startNodeId, endNodeId in combinations(stopIds, 2):
+            graph = Graph(edges=edges, bi_directional=True)
+            finder = DijkstraFinder()
+            shortPath, shortPathLength = finder.find_path(graph.node(startNodeId), graph.node(endNodeId), graph)
+            shortPathIds = [node.node_id for node in shortPath]
+
+            shortestPaths[(startNodeId, endNodeId)] = (shortPathLength, shortPathIds)
+            shortestPaths[(endNodeId, startNodeId)] = (shortPathLength, shortPathIds[::-1])
+
+            # The pathfinding library is dumb and modifies the edges list
+            for edge in edges:
+                edge[0] = edge[0].node_id
+                edge[1] = edge[1].node_id
+        
+        homeId = stopIds[0]
+        shortestPath: list[str] = None
+        shortestPathLength = float("inf")
+        for x in itertools.permutations(stopIds[1:]):
+            candidatePath = [homeId, *x, homeId]
+            
+            candidateFullPath = []
+            candidateLength = 0
+            for i in range(len(candidatePath) - 1):
+                startNodeId = candidatePath[i]
+                endNodeId = candidatePath[i + 1]
+                subpathLength, subpath = shortestPaths[(startNodeId, endNodeId)]
+                candidateLength += subpathLength
+                candidateFullPath += subpath[:-1]
+            candidateFullPath.append(homeId)
+
+            if candidateLength < shortestPathLength:
+                shortestPath = candidateFullPath
+                shortestPathLength = candidateLength
+        return shortestPath
+
     def toSvg(self):
         xmin, xmax, ymin, ymax = bboxCombine([p.bbox() for p in self.paths.values()])
 
@@ -75,6 +125,10 @@ class FloorMap:
 
 if __name__ == "__main__":
     floormap = FloorMap(r".\maps\TestA.floormap")
+
     with open(r".\maps\TestA.svg", "w") as file:
         floormapSvg = floormap.toSvg()
         file.write(floormapSvg)
+
+    trip = floormap.planTrip(["mail", "room1", "room3"])
+    print(trip)
