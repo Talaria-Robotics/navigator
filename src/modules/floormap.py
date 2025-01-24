@@ -1,20 +1,5 @@
 from svgpathtools import parse_path, disvg, Path
-from numpy import arange
-from typing import Tuple
-import sys
-
-def _closestPointOnPath(path: Path, point: complex) -> Tuple[float, complex]:
-    closest = None
-    smallestDistance = sys.float_info.max
-
-    for t in arange(0, 1, 0.01):
-        pathPoint: complex = path.point(t)
-        distance = abs(pathPoint - point)
-        if distance < smallestDistance:
-            smallestDistance = distance
-            closest = (float(t), pathPoint)
-        
-    return closest
+from nav_utils import closestPointOnPath
 
 class FloorMap:
     def __init__(self, filePath: str):
@@ -27,7 +12,7 @@ class FloorMap:
             path = parse_path(line)
             paths.append(path)
         
-        closeest = _closestPointOnPath(paths[0], complex(5, 5))
+        closeest = closestPointOnPath(paths[0], complex(50, 0))
         print(closeest)
 
 
