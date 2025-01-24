@@ -1,5 +1,5 @@
 from svgpathtools import parse_path, disvg, Path
-from nav_utils import closestPointOnPath
+from nav_utils import bboxCombine
 
 class FloorMap:
     def __init__(self, filePath: str):
@@ -55,14 +55,27 @@ class FloorMap:
                     pathSvg = f"M {pathStart.real} {pathStart.imag} {pathSvg.strip()} L {pathEnd.real} {pathEnd.imag}"
                     self.paths[(pathStartId, pathEndId)] = parse_path(pathSvg)
         
-        print("NODES")
-        print(self.nodes)
-        print()
-        print("PATHS")
-        print(self.paths)
-        for path in self.paths.values():
-            disvg(path)
+    def toSvg(self):
+        xmin, xmax, ymin, ymax = bboxCombine([p.bbox() for p in self.paths.values()])
+
+        scaleFactor = 1000 / max(xmax, ymax)
+        vbWidth = 2 * xmax * scaleFactor
+        vbHeight = 2 * ymax * scaleFactor
+
+        svgStr = f"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{vbWidth}\" height=\"{vbHeight}\" >"
+        
+        svgStr += f"<g transform=\"scale({scaleFactor})\">"
+        
+        for pathId, path in self.paths.items():
+            svgStr += f"<path id=\"{pathId}\" d=\"{path.d()}\" stroke-width=\"0.25\" stroke=\"#C83737\" fill=\"transparent\" />"
+        
+        for nodeId, nodePoint in self.nodes.items():
+            svgStr += f"<circle id=\"{nodeId}\" cx=\"{nodePoint.real}\" cy=\"{nodePoint.imag}\" r=\"0.25\" fill=\"#500000\"/>"
+        
+        svgStr += "</g></svg>"
+        return svgStr
 
 
 if __name__ == "__main__":
     floormap = FloorMap(r".\maps\TestA.floormap")
+    print(floormap.toSvg())
