@@ -1,1 +1,24 @@
-M 10 10 H 90 V 90 H 10 L 10 10
+[Meta]
+Small Test A
+77411ACA-B73D-4B02-AB38-4433573A5522
+
+[Bins]
+1: Letter Slot 1
+2: Letter Slot 2
+3: Letter Slot 3
+10: Package Caddy
+
+[Nodes]
+mail: 2, 3
+j1: 7, 5
+room1: 4, 6
+j2: 7, 6
+room2: 7, 8
+room3: 10.5, 3
+
+[Paths]
+mail > j1: H 7
+j1 > room1: H 4
+j1 > j2:
+j2 > room2:
+j2 > room3: H 10.5
