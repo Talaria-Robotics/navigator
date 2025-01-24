@@ -1,4 +1,4 @@
-from svgpathtools import parse_path, disvg, Path
+from svgpathtools import parse_path, Path
 from nav_utils import bboxCombine
 
 class FloorMap:
@@ -75,4 +75,6 @@ class FloorMap:
 
 if __name__ == "__main__":
     floormap = FloorMap(r".\maps\TestA.floormap")
-    print(floormap.toSvg())
+    with open(r".\maps\TestA.svg", "w") as file:
+        floormapSvg = floormap.toSvg()
+        file.write(floormapSvg)
