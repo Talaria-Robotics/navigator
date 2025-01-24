@@ -130,5 +130,5 @@ if __name__ == "__main__":
         floormapSvg = floormap.toSvg()
         file.write(floormapSvg)
 
-    trip = floormap.planTrip(["mail", "room1", "room3"])
+    trip = floormap.planTrip(["mail", "room3"])
     print(trip)

@@ -26,8 +26,8 @@
      labelstyle="default"
      showgrid="true"
      inkscape:zoom="2"
-     inkscape:cx="246.25"
-     inkscape:cy="208.25"
+     inkscape:cx="314.25"
+     inkscape:cy="194.25"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="-9"
@@ -86,5 +86,10 @@
        id="path1"
        inkscape:label="main"
        sodipodi:nodetypes="ccc" />
+    <path
+       style="fill:none;stroke:#c83737;stroke-width:0.2"
+       d="m 2,3 c 4,-2 8.530415,-3e-7 8.530415,-3e-7"
+       id="path6"
+       sodipodi:nodetypes="cc" />
   </g>
 </svg>

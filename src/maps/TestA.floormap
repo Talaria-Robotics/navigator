@@ -22,4 +22,4 @@ j1 > room1: H 4
 j1 > j2:
 j2 > room2:
 j2 > room3: H 10.5
-j1 > room3:
+mail > room3: c 4,-2 8.530415,-3e-7 8.530415,-3e-7
