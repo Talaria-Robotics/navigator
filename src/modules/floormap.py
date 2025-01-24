@@ -4,7 +4,6 @@ from nav_utils import bboxCombine
 class FloorMap:
     def __init__(self, filePath: str):
         SECTION_META = "[Meta]"
-        SECTION_BINS = "[Bins]"
         SECTION_ROOMS = "[Rooms]"
         SECTION_NODES = "[Nodes]"
         SECTION_PATHS = "[Paths]"
@@ -32,11 +31,6 @@ class FloorMap:
                         self.name = line
                     else:
                         self.id = line
-                elif currentSection == SECTION_BINS:
-                    binNum, binName = line.split(':')
-                    binNum = int(binNum)
-                    binName = binName.strip()
-                    self.bins[binNum] = binName
                 elif currentSection == SECTION_ROOMS:
                     roomId, roomName = line.split(':')
                     roomId = roomId.strip()
