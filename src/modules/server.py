@@ -49,7 +49,6 @@ async def getPossibleRouteInfo(request: Request):
 async def setRoute(request: Request):
     print(request.json)
     app.ctx.requestedRoute = request.json
-    app.ctx.status.put("Initializing")
     return json(request.json)
 
 @app.get("/routeStatus")
@@ -60,6 +59,7 @@ async def getRouteStatus(request: Request):
 async def transitFeed(request: Request, ws: Websocket):
     print("Connected to Control Panel")
     stausesSent = 0
+    app.ctx.status.put("{ \"orderNumber\": 0, \"$type\": \"ReturnHome\" }")
     while True:
         while not app.ctx.status.empty():
             s = app.ctx.status.get()
