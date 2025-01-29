@@ -1,4 +1,6 @@
-from modules.models import *
+from asyncio import sleep
+from models import *
+from floormap import FloorMap
 from sanic import Sanic, text, json, Request, Websocket
 from orjson import dumps, loads
 from queue import SimpleQueue
@@ -14,7 +16,7 @@ def custom_dumps(obj):
 
 class NavigatorContext:
     requestedRoute: str
-    status: SimpleQueue = SimpleQueue()
+    events: SimpleQueue = SimpleQueue()
 
 app = Sanic("talaria_navigator",
     dumps=custom_dumps, loads=loads,
@@ -26,6 +28,8 @@ async def health(request: Request):
 
 @app.get("/possibleRoute")
 async def getPossibleRouteInfo(request: Request):
+    floorplan = FloorMap(r".\maps\TestA.floormap")
+
     routeInfo = PossibleMailRouteInfo()
     routeInfo.id = "00000000-0000-0000-0000-000000000000"
     routeInfo.name = "Test Route (HTTP)"
@@ -53,18 +57,24 @@ async def setRoute(request: Request):
 
 @app.get("/routeStatus")
 async def getRouteStatus(request: Request):
-    return text(str(app.ctx.status))
+    return text(str(app.ctx.events))
 
 @app.websocket("/transitFeed")
 async def transitFeed(request: Request, ws: Websocket):
     print("Connected to Control Panel")
     stausesSent = 0
-    app.ctx.status.put("{ \"orderNumber\": 0, \"$type\": \"ReturnHome\" }")
+    app.ctx.events.put("{ \"orderNumber\": 0, \"$type\": \"ReturnHome\" }")
+    app.ctx.events.put("{\"$type\":\"InTransit\",\"orderNumber\":1,\"room\":{\"id\":\"room1\",\"name\":\"Room 1\"}}")
+    app.ctx.events.put("{\"$type\":\"ArrivedAtStop\",\"orderNumber\":2,\"room\":{\"id\":\"room1\",\"name\":\"Room 1\"},\"bin\":{\"number\":2,\"name\":\"Letter Slot 1\"}}")
+    app.ctx.events.put("{\"$type\":\"InTransit\",\"orderNumber\":3,\"room\":{\"id\":\"room2\",\"name\":\"Room 2\"}}")
+    app.ctx.events.put("{\"$type\":\"ArrivedAtStop\",\"orderNumber\":4,\"room\":{\"id\":\"room2\",\"name\":\"Room 2\"},\"bin\":{\"number\":3,\"name\":\"Letter Slot 2\"}}")
+    app.ctx.events.put("{ \"orderNumber\": 5, \"$type\": \"ReturnHome\" }")
     while True:
-        while not app.ctx.status.empty():
-            s = app.ctx.status.get()
-            print(f"Sending status '{s}'")
+        while not app.ctx.events.empty():
+            s = app.ctx.events.get()
+            print(f"Sending event '{s}'")
             await ws.send(s)
+            await sleep(4)
             stausesSent += 1
 
 @app.post("/confirmDelivery")
