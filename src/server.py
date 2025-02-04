@@ -15,12 +15,23 @@ def custom_dumps(obj):
     return dumps(obj, default=default_serializer)
 
 class NavigatorContext:
+    floorplan: FloorMap
+    bins: dict[int, str]
     requestedRoute: str
     events: SimpleQueue = SimpleQueue()
 
+ctx = NavigatorContext()
+ctx.floorplan = FloorMap(r".\maps\TestA.floormap")
+ctx.bins = {
+    1: "Letter Slot 1",
+    2: "Letter Slot 2",
+    3: "Letter Slot 3",
+    14: "Package Area",
+}
+
 app = Sanic("talaria_navigator",
     dumps=custom_dumps, loads=loads,
-    ctx=NavigatorContext())
+    ctx=ctx)
 
 @app.get("/health")
 async def health(request: Request):
