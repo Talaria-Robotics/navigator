@@ -15,7 +15,6 @@ class FloorMap:
 
         self.name: str = None
         self.id: str = None
-        self.bins: dict[int, str] = {}
         self.rooms: dict[str, str] = {}
         self.nodes: dict[str, complex] = {}
         self.paths: dict[tuple[str, str], Path] = {}
