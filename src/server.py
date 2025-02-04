@@ -31,20 +31,19 @@ async def getPossibleRouteInfo(request: Request):
     floorplan = FloorMap(r".\maps\TestA.floormap")
 
     routeInfo = PossibleMailRouteInfo()
-    routeInfo.id = "00000000-0000-0000-0000-000000000000"
-    routeInfo.name = "Test Route (HTTP)"
+    routeInfo.id = floorplan.id
+    routeInfo.name = floorplan.name
+
+    routeInfo.rooms = [
+        MailRouteRoom(id, name)
+        for id, name in floorplan.rooms.items()
+    ]
 
     routeInfo.bins = [
         MailBin(1, "Letter Slot 1"),
         MailBin(2, "Letter Slot 2"),
         MailBin(3, "Letter Slot 3"),
         MailBin(4, "Package Area"),
-    ]
-
-    routeInfo.rooms = [
-        MailRouteRoom("MR", "Mail Room"),
-        MailRouteRoom("A", "Room A"),
-        MailRouteRoom("B", "Room B"),
     ]
 
     return json(routeInfo)
