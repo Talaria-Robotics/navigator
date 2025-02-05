@@ -1,5 +1,6 @@
 from asyncio import sleep
 from models import *
+from mail_route_events import *
 from floormap import FloorMap
 from sanic import Sanic, text, json, Request, Websocket
 from orjson import dumps, loads
@@ -17,7 +18,7 @@ def custom_dumps(obj):
 class NavigatorContext:
     floorplan: FloorMap
     bins: dict[int, str]
-    requestedRoute: str
+    requestedRoute: RequestedMailRoute
     events: SimpleQueue = SimpleQueue()
 
 ctx = NavigatorContext()
@@ -39,8 +40,7 @@ async def health(request: Request):
 
 @app.get("/possibleRoute")
 async def getPossibleRouteInfo(request: Request):
-    floorplan = FloorMap(r".\maps\TestA.floormap")
-
+    floorplan = app.ctx.floorplan
     routeInfo = PossibleMailRouteInfo()
     routeInfo.id = floorplan.id
     routeInfo.name = floorplan.name
@@ -51,18 +51,18 @@ async def getPossibleRouteInfo(request: Request):
     ]
 
     routeInfo.bins = [
-        MailBin(1, "Letter Slot 1"),
-        MailBin(2, "Letter Slot 2"),
-        MailBin(3, "Letter Slot 3"),
-        MailBin(4, "Package Area"),
+        MailBin(number, name)
+        for number, name in app.ctx.bins.items()
     ]
 
     return json(routeInfo)
 
 @app.post("/route")
 async def setRoute(request: Request):
-    print(request.json)
-    app.ctx.requestedRoute = request.json
+    requestedRoute = RequestedMailRoute(request.json)
+    print(f"Received route: {requestedRoute.stops}")
+    
+    app.ctx.requestedRoute = requestedRoute
     return json(request.json)
 
 @app.get("/routeStatus")
@@ -73,19 +73,40 @@ async def getRouteStatus(request: Request):
 async def transitFeed(request: Request, ws: Websocket):
     print("Connected to Control Panel")
     stausesSent = 0
-    app.ctx.events.put("{ \"orderNumber\": 0, \"$type\": \"ReturnHome\" }")
-    app.ctx.events.put("{\"$type\":\"InTransit\",\"orderNumber\":1,\"room\":{\"id\":\"room1\",\"name\":\"Room 1\"}}")
-    app.ctx.events.put("{\"$type\":\"ArrivedAtStop\",\"orderNumber\":2,\"room\":{\"id\":\"room1\",\"name\":\"Room 1\"},\"bin\":{\"number\":2,\"name\":\"Letter Slot 1\"}}")
-    app.ctx.events.put("{\"$type\":\"InTransit\",\"orderNumber\":3,\"room\":{\"id\":\"room2\",\"name\":\"Room 2\"}}")
-    app.ctx.events.put("{\"$type\":\"ArrivedAtStop\",\"orderNumber\":4,\"room\":{\"id\":\"room2\",\"name\":\"Room 2\"},\"bin\":{\"number\":3,\"name\":\"Letter Slot 2\"}}")
-    app.ctx.events.put("{ \"orderNumber\": 5, \"$type\": \"ReturnHome\" }")
+    
+    # DEMO
+    for binNumber, roomId in app.ctx.requestedRoute.stops.items():
+        roomName = app.ctx.floorplan.rooms[roomId]
+        room = MailRouteRoom(roomId, roomName)
+        
+        binName = app.ctx.bins[binNumber]
+        bin = MailBin(binNumber, binName)
+
+        app.ctx.events.put(InTransitEvent(room))
+        app.ctx.events.put(ArrivedAtStopEvent(room, bin))
+    
+    app.ctx.events.put(ReturnHomeEvent())
+    # END DEMO
+    
     while True:
         while not app.ctx.events.empty():
-            s = app.ctx.events.get()
-            print(f"Sending event '{s}'")
-            await ws.send(s)
-            await sleep(4)
+            event: MailRouteEvent = app.ctx.events.get()
+            event.orderNumber = stausesSent
+            
+            eventStr = dumps(event, default=vars).decode("utf-8")
+            print(f"Sending event '{eventStr}'")
+            await ws.send(eventStr)
             stausesSent += 1
+            
+            if type(event) is ArrivedAtStopEvent:
+                # Wait for recipient to confirm
+                confirmationData = await ws.recv()
+                print(f"Package received: '{confirmationData}'")
+            else:
+                # DEMO
+                await sleep(4)
+                # END DEMO
+            
 
 @app.post("/confirmDelivery")
 async def confirmDelivery(request: Request):
