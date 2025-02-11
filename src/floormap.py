@@ -110,24 +110,28 @@ class FloorMap:
         svgStr += f"<g transform=\"scale({scaleFactor})\">"
         
         for pathId, path in self.paths.items():
-            svgStr += f"<path id=\"{pathId}\" d=\"{path.d()}\" stroke-width=\"0.25\" stroke=\"#C83737\" fill=\"transparent\" />"
+            svgStr += f"<path id=\"{pathId}\" d=\"{path.d()}\" stroke-width=\"2\" stroke=\"#C83737\" fill=\"transparent\" />"
         
         for nodeId, nodePoint in self.nodes.items():
             nodeColor = "#500000"
             if nodeId in self.rooms.keys():
                 nodeColor = "#005000"
-            svgStr += f"<circle id=\"{nodeId}\" cx=\"{nodePoint.real}\" cy=\"{nodePoint.imag}\" r=\"0.25\" fill=\"{nodeColor}\"/>"
+            svgStr += f"<circle id=\"{nodeId}\" cx=\"{nodePoint.real}\" cy=\"{nodePoint.imag}\" r=\"2\" fill=\"{nodeColor}\"/>"
         
         svgStr += "</g></svg>"
         return svgStr
 
 
 if __name__ == "__main__":
-    floormap = FloorMap(r".\maps\TestA.floormap")
+    from pathlib import Path 
 
-    with open(r".\maps\TestA.svg", "w") as file:
+    floormapPath = Path(".", "maps", "FermierHall_Small.floormap")
+    floormap = FloorMap(str(floormapPath))
+
+    floormapSvgPath = floormapPath.with_suffix(".svg")
+    with floormapSvgPath.open("w") as file:
         floormapSvg = floormap.toSvg()
         file.write(floormapSvg)
 
-    trip = floormap.planTrip(["mail", "room3"])
+    trip = floormap.planTrip(["r111a", "r106-1"])
     print(trip)
