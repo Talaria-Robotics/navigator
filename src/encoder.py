@@ -46,8 +46,8 @@ def readShaftPositions() -> tuple[float, float]:
 if __name__ == "__main__":
     print("Testing Encoders")
     while True:
-      encL, encR = readShaftPositions()
+      encL_val, encR_val = readShaftPositions()
       
-      print(f"Left: {encL}\tRight: {encR}")
+      print(f"Left: {encL_val}\tRight: {encR_val}")
 
       time.sleep(0.5)
