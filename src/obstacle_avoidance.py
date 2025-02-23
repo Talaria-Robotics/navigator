@@ -4,9 +4,6 @@ from time import sleep
 import vector as vec
 
 
-
-
-
 # Depending on the area that the LIDAR detects obstacles, it will pivot in the opposite direction to avoid
 # then it will continue moving straight. This behavior is typical of a Roomba vacuum cleaner.
 def avoid_obstacles():
