@@ -23,6 +23,7 @@ def testPrint(data):
     print()
 
 def scan() -> list[float]:
+    lidar.stop()
     lidar.clear_input()
     for scan in lidar.iter_scans():
         for (quality, angle, distance) in scan:
