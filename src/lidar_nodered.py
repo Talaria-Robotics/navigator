@@ -9,6 +9,8 @@ import speed_control as sc
 from time import sleep
 from threading import Thread
 
+controlMotors = False
+
 class SCUTTLE:
 
     def __init__(self):
@@ -79,7 +81,8 @@ class SCUTTLE:
                 try:
                     userInputTarget = self.dashBoardData['one_joystick']
                     wheelSpeedTarget = self._getWheelSpeed(userInputTarget)
-                    sc.driveOpenLoop(wheelSpeedTarget)
+                    if controlMotors:
+                        sc.driveOpenLoop(wheelSpeedTarget)
                 except: 
                     pass
 
