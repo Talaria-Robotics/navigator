@@ -34,7 +34,8 @@ class SCUTTLE:
         # NodeRED data in
         self.dashBoardData = None
 
-        # LIDAR Thread   
+        # LIDAR Thread
+        lidar.init()
         lidarThread = Thread(target=self.scan_loop, daemon=True)
         lidarThread.start()
 
