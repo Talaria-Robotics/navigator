@@ -1,11 +1,16 @@
+from threading import Thread
 from rplidar import RPLidar
-from math import floor
 from sys import float_info
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar = RPLidar(PORT_NAME)
+_scanData = [0] * 360
 
-scan_data = [0] * 360
+def _scanLoop():
+    for scan in lidar.iter_scans():
+        for (quality, angle, distance) in scan:
+            clampedAngle = min([359, round(angle)])
+            _scanData[clampedAngle] = distance
 
 def testPrint(data):
     angles_of_interest = [0, 90, 180, 270]
@@ -23,15 +28,16 @@ def testPrint(data):
     print()
 
 def scan() -> list[float]:
-    lidar.stop()
-    lidar.clean_input()
-    for scan in lidar.iter_scans():
-        for (quality, angle, distance) in scan:
-            clampedAngle = min([359, round(angle)])
-            scan_data[clampedAngle] = distance
+    return _scanData
     
-        # Return early, we just care about the current iteration
-        return scan_data
+def init():
+    # The A1 LIDAR really doesn't like one-shot measurements,
+    # so all readings have to be taking continuously in the same loop.
+    # If we tried that in the scan() method, we'd get stuck in an
+    # infinite loop and hang the caller. Instead, we'll spin up
+    # a separate thread that updates _scanData as readings come in.
+    _scanThread = Thread(target=_scanLoop, daemon=True)
+    _scanThread.start()
 
 def disconnect():
     lidar.stop_motor()
@@ -40,5 +46,9 @@ def disconnect():
 
 
 if __name__ == "__main__":
+    from time import sleep
+
+    init()
     while True:
         print(scan())
+        sleep(1.0)
