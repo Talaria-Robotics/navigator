@@ -5,6 +5,7 @@ from floormap import FloorMap
 from sanic import Sanic, text, json, Request, Websocket
 from orjson import dumps, loads
 from queue import SimpleQueue
+import os
 
 def default_serializer(obj):
     match obj:
@@ -22,7 +23,7 @@ class NavigatorContext:
     events: SimpleQueue = SimpleQueue()
 
 ctx = NavigatorContext()
-ctx.floorplan = FloorMap(r".\maps\TestA.floormap")
+ctx.floorplan = FloorMap(os.path.join("maps", "TestA.floormap"))
 ctx.bins = {
     1: "Letter Slot 1",
     2: "Letter Slot 2",
