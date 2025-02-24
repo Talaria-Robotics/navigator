@@ -5,11 +5,13 @@ import json
 import lidar
 import numpy as np
 import vector as vec
-import speed_control as sc
 from time import sleep
 from threading import Thread
 
 controlMotors = False
+
+if controlMotors:
+    import speed_control as sc
 
 class SCUTTLE:
 
