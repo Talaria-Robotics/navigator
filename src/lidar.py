@@ -1,9 +1,9 @@
-from adafruit_rplidar import RPLidar
+from rplidar import RPLidar
 from math import floor
 from sys import float_info
 
 PORT_NAME = '/dev/ttyUSB0'
-lidar = RPLidar(None, PORT_NAME, timeout=3)
+lidar = RPLidar(PORT_NAME)
 
 scan_data = [0] * 360
 
@@ -24,7 +24,7 @@ def testPrint(data):
 
 def scan() -> list[float]:
     lidar.stop()
-    lidar.clear_input()
+    lidar.clean_input()
     for scan in lidar.iter_scans():
         for (quality, angle, distance) in scan:
             clampedAngle = min([359, round(angle)])
@@ -34,5 +34,11 @@ def scan() -> list[float]:
         return scan_data
 
 def disconnect():
+    lidar.stop_motor()
     lidar.stop()
     lidar.disconnect()
+
+
+if __name__ == "__main__":
+    while True:
+        print(scan())
