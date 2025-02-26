@@ -73,7 +73,7 @@ async def getRouteStatus(request: Request):
 @app.websocket("/transitFeed")
 async def transitFeed(request: Request, ws: Websocket):
     print("Connected to Control Panel")
-    stausesSent = 0
+    statusesSent = 0
     
     # DEMO
     for binNumber, roomId in app.ctx.requestedRoute.stops.items():
@@ -92,12 +92,13 @@ async def transitFeed(request: Request, ws: Websocket):
     while True:
         while not app.ctx.events.empty():
             event: MailRouteEvent = app.ctx.events.get()
-            event.orderNumber = stausesSent
+            event.orderNumber = statusesSent
             
             eventStr = dumps(event, default=vars).decode("utf-8")
             print(f"Sending event '{eventStr}'")
             await ws.send(eventStr)
-            stausesSent += 1
+            print(f"Sent #{statusesSent}")
+            statusesSent += 1
             
             if type(event) is ArrivedAtStopEvent:
                 # Wait for recipient to confirm

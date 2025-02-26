@@ -3,6 +3,7 @@
 import socket
 import json
 import lidar
+import encoder
 import numpy as np
 import vector as vec
 from time import sleep
