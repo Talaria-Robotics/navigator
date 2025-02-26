@@ -50,4 +50,4 @@ if __name__ == "__main__":
       
       print(f"Left: {encL_val}\tRight: {encR_val}")
 
-      time.sleep(0.5)
+      time.sleep(0.1)

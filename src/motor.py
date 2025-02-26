@@ -48,13 +48,13 @@ def drive(mySpeed: float):
 
 if __name__ == "__main__":
     while True:
-        print("Driving forward")
+        print("Driving left motor")
         # sendLeft(0.8)
         # sendRight(0.8)
         drive(0.8)
         time.sleep(4)
 
-        print("Driving reverse")
+        print("Driving right motor")
         # sendLeft(-0.8)
         # sendRight(-0.8)
         drive(-0.8)

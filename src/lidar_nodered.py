@@ -29,17 +29,20 @@ class SCUTTLE:
         self.IP = "127.0.0.1"
         self.port = 3553
         self.lidarSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.lidarSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.lidarSock.bind((self.IP, self.port))
         self.lidarSock.settimeout(.25)
         
         # Left encoder UDP
         self.encoderLSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.encoderLSock.bind((self.IP, 3556))
+        self.encoderLSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.encoderLSock.bind((self.IP, self.port))
         self.encoderLSock.settimeout(.25)
         
         # Right encoder UDP
         self.encoderRSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.encoderRSock.bind((self.IP, 3557))
+        self.encoderRSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.encoderRSock.bind((self.IP, self.port))
         self.encoderRSock.settimeout(.25)
 
         # NodeRED data in
@@ -64,8 +67,13 @@ class SCUTTLE:
             data_msg = data.encode('utf-8')
             self.lidarSock.sendto(data_msg, ("127.0.0.1", 3555))
             
-            self.encoderLSock.sendto("45.0".encode('utf-8'), ("127.0.0.1", 3556))
-            self.encoderRSock.sendto("90.0".encode('utf-8'), ("127.0.0.1", 3557))
+            # Read encoder positions
+            encL_val, encR_val = encoder.readShaftPositions()
+            print(f"Left: {encL_val}\tRight: {encR_val}")
+
+            # Send encoder data to dashboard
+            self.encoderLSock.sendto(str(encL_val).encode('utf-8'), ("127.0.0.1", 3556))
+            self.encoderRSock.sendto(str(encR_val).encode('utf-8'), ("127.0.0.1", 3557))
             
             sleep(.025)
 
