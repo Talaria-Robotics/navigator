@@ -25,12 +25,22 @@ class SCUTTLE:
         self.max_xd = 0.4
         self.max_td = (self.max_xd/self.wheelBase)
 
-        # UPD communication
+        # LIDAR UDP
         self.IP = "127.0.0.1"
         self.port = 3553
-        self.dashBoardDatasock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.dashBoardDatasock.bind((self.IP, self.port))
-        self.dashBoardDatasock.settimeout(.25)
+        self.lidarSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.lidarSock.bind((self.IP, self.port))
+        self.lidarSock.settimeout(.25)
+        
+        # Left encoder UDP
+        self.encoderLSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.encoderLSock.bind((self.IP, 3556))
+        self.encoderLSock.settimeout(.25)
+        
+        # Right encoder UDP
+        self.encoderRSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.encoderRSock.bind((self.IP, 3557))
+        self.encoderRSock.settimeout(.25)
 
         # NodeRED data in
         self.dashBoardData = None
@@ -52,7 +62,11 @@ class SCUTTLE:
         while True:
             data = self.cartesian_scan()
             data_msg = data.encode('utf-8')
-            self.dashBoardDatasock.sendto(data_msg, ("127.0.0.1", 3555))
+            self.lidarSock.sendto(data_msg, ("127.0.0.1", 3555))
+            
+            self.encoderLSock.sendto("45.0".encode('utf-8'), ("127.0.0.1", 3556))
+            self.encoderRSock.sendto("90.0".encode('utf-8'), ("127.0.0.1", 3557))
+            
             sleep(.025)
 
     def cartesian_scan(self):
@@ -73,7 +87,7 @@ class SCUTTLE:
     def _dashBoardDataLoop(self):
         while True:
             try:
-                dashBoardData,recvAddr = self.dashBoardDatasock.recvfrom(1024)
+                dashBoardData,recvAddr = self.lidarSock.recvfrom(1024)
                 self.dashBoardData = json.loads(dashBoardData)
 
             except socket.timeout:
