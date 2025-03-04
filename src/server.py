@@ -2,10 +2,14 @@ from asyncio import sleep
 from models import *
 from mail_route_events import *
 from floormap import FloorMap
-from sanic import Sanic, text, json, Request, Websocket
+from sanic import Sanic, text, json, Request
 from orjson import dumps, loads
 from queue import SimpleQueue
+import threading
+import socket
 import os
+
+TRANSITFEED_UDP_PORT = 8076
 
 def default_serializer(obj):
     match obj:
@@ -21,6 +25,7 @@ class NavigatorContext:
     bins: dict[int, str]
     requestedRoute: RequestedMailRoute
     events: SimpleQueue = SimpleQueue()
+    transitFeedSock: socket.socket
 
 ctx = NavigatorContext()
 ctx.floorplan = FloorMap(os.path.join("maps", "TestA.floormap"))
@@ -34,6 +39,16 @@ ctx.bins = {
 app = Sanic("talaria_navigator",
     dumps=custom_dumps, loads=loads,
     ctx=ctx)
+
+@app.listener("before_server_start")
+async def setup_udp():
+    print("Binding to UDP socket...")
+    app.ctx.transitFeedSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    app.ctx.transitFeedSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    app.ctx.transitFeedSock.bind(("127.0.0.1", TRANSITFEED_UDP_PORT))
+    app.ctx.transitFeedSock.settimeout(0.25)
+    threading.Thread(target=transitFeed, args=(app.ctx.transitFeedSock,))
+    print(f"Bound to port {TRANSITFEED_UDP_PORT}")
 
 @app.get("/health")
 async def health(request: Request):
@@ -70,8 +85,9 @@ async def setRoute(request: Request):
 async def getRouteStatus(request: Request):
     return text(str(app.ctx.events))
 
-@app.websocket("/transitFeed")
-async def transitFeed(request: Request, ws: Websocket):
+async def transitFeed(parentSock: socket.socket):
+    sock,  = parentSock.accept()
+
     print("Connected to Control Panel")
     statusesSent = 0
     
@@ -94,15 +110,15 @@ async def transitFeed(request: Request, ws: Websocket):
             event: MailRouteEvent = app.ctx.events.get()
             event.orderNumber = statusesSent
             
-            eventStr = dumps(event, default=vars).decode("utf-8")
+            eventStr = dumps(event, default=vars)
             print(f"Sending event '{eventStr}'")
-            await ws.send(eventStr)
+            await sock.send(eventStr)
             print(f"Sent #{statusesSent}")
             statusesSent += 1
             
             if type(event) is ArrivedAtStopEvent:
                 # Wait for recipient to confirm
-                confirmationData = await ws.recv()
+                confirmationData = await sock.recv(512)
                 print(f"Package received: '{confirmationData}'")
             else:
                 # DEMO
