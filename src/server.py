@@ -8,6 +8,7 @@ from queue import SimpleQueue
 import threading
 import socket
 import os
+import time
 
 TRANSITFEED_UDP_PORT = 8076
 
@@ -41,14 +42,9 @@ app = Sanic("talaria_navigator",
     ctx=ctx)
 
 @app.listener("before_server_start")
-async def setup_udp():
-    print("Binding to UDP socket...")
-    app.ctx.transitFeedSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    app.ctx.transitFeedSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    app.ctx.transitFeedSock.bind(("127.0.0.1", TRANSITFEED_UDP_PORT))
-    app.ctx.transitFeedSock.settimeout(0.25)
-    threading.Thread(target=transitFeed, args=(app.ctx.transitFeedSock,))
-    print(f"Bound to port {TRANSITFEED_UDP_PORT}")
+async def setup_udp(app):
+    thread = threading.Thread(target=transitFeed)
+    thread.start()
 
 @app.get("/health")
 async def health(request: Request):
@@ -85,12 +81,26 @@ async def setRoute(request: Request):
 async def getRouteStatus(request: Request):
     return text(str(app.ctx.events))
 
-async def transitFeed(parentSock: socket.socket):
-    sock,  = parentSock.accept()
-
-    print("Connected to Control Panel")
-    statusesSent = 0
+def transitFeed():
+    print("Binding to UDP socket...")
     
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    # Disable the timeout so we wait indefinitely for a connection
+    sock.settimeout(None)
+    sock.bind(("127.0.0.1", TRANSITFEED_UDP_PORT))
+    print(f"Bound to port {TRANSITFEED_UDP_PORT}")
+
+    start, addr = sock.recvfrom(512)
+    print(f"Connected to Control Panel at {addr}, got {start}")
+
+    print("Preparing route...")
+    floorplan = app.ctx.floorplan
+    stopIds = [*app.ctx.requestedRoute.stops.values()]
+    tripStops = floorplan.planTrip(stopIds)
+    print(f"Planned route: {tripStops}")
+
     # DEMO
     for binNumber, roomId in app.ctx.requestedRoute.stops.items():
         roomName = app.ctx.floorplan.rooms[roomId]
@@ -105,22 +115,28 @@ async def transitFeed(parentSock: socket.socket):
     app.ctx.events.put(ReturnHomeEvent())
     # END DEMO
     
-    while True:
-        while not app.ctx.events.empty():
-            event: MailRouteEvent = app.ctx.events.get()
-            event.orderNumber = statusesSent
-            
-            eventStr = dumps(event, default=vars)
-            print(f"Sending event '{eventStr}'")
-            await sock.send(eventStr)
-            print(f"Sent #{statusesSent}")
-            statusesSent += 1
-            
-            if type(event) is ArrivedAtStopEvent:
-                # Wait for recipient to confirm
-                confirmationData = await sock.recv(512)
-                print(f"Package received: '{confirmationData}'")
-            else:
-                # DEMO
-                await sleep(4)
-                # END DEMO
+    statusesSent = 0
+    nextStopIndex = 0
+
+    while not app.ctx.events.empty():
+        event: MailRouteEvent = app.ctx.events.get()
+        event.orderNumber = statusesSent
+        
+        eventStr = dumps(event, default=vars)
+        print(f"Sending event '{eventStr}'")
+        sock.sendto(eventStr, addr)
+        print(f"Sent #{statusesSent}")
+        statusesSent += 1
+        
+        if type(event) is ArrivedAtStopEvent:
+            # Wait for recipient to confirm
+            while True:
+                confirmationData = sock.recv(512)
+                if confirmationData.startswith('%'):
+                    break
+            print(f"Package received: '{confirmationData}'")
+            nextStopIndex += 1
+        else:
+            # DEMO
+            time.sleep(4)
+            # END DEMO
