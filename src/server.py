@@ -89,7 +89,7 @@ def transitFeed():
     
     # Disable the timeout so we wait indefinitely for a connection
     sock.settimeout(None)
-    sock.bind(("127.0.0.1", TRANSITFEED_UDP_PORT))
+    sock.bind(("0.0.0.0", TRANSITFEED_UDP_PORT))
     print(f"Bound to port {TRANSITFEED_UDP_PORT}")
 
     start, addr = sock.recvfrom(512)
