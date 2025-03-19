@@ -124,8 +124,3 @@ async def transitFeed(parentSock: socket.socket):
                 # DEMO
                 await sleep(4)
                 # END DEMO
-            
-
-@app.post("/confirmDelivery")
-async def confirmDelivery(request: Request):
-    raise NotImplementedError()
