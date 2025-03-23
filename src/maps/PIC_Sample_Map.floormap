@@ -1,0 +1,25 @@
+[Meta]
+PIC Sample Floor
+77411ACA-B73D-4B02-AB38-4433573A5523
+
+[Rooms]
+mail: Mail Room
+room1: Room 1
+room2: Room 2
+room3: Room 3
+
+[Nodes]
+mail: 0,0
+j2: 48, 0
+room2: 72, 0
+j1: 48, 30
+room1: 72, 30 
+room3: -42, 66
+
+[Paths]
+mail > j2: 
+j2 > room2: 
+j2 > j1: 
+j1 > room1:
+mail > room3: H -42
+room3 > j1: H 24 V -36
