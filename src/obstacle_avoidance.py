@@ -1,8 +1,10 @@
 import inverse_kinematics as ik
-import L2_speed_control as sc
+import speed_control as sc
 from time import sleep
 import vector as vec
 import math
+
+wheel_radius = 0.025  # Example wheel radius in meters (5 cm)
 
 # Function to simulate reading LIDAR data (adjust based on actual sensor)
 def get_lidar_data():
@@ -140,8 +142,10 @@ def avoid_obstacles(wheel_radius):
         print("No obstacles detected, continuing to roam.")
         sc.driveOpenLoop(ik.getPdTargets([0.2, 0]))  # Continue moving forward
 
+def navigate():
+    avoid_obstacles(wheel_radius)  # Run the obstacle avoidance function
+    sleep(1)  # Delay for a bit to allow the robot to process
+
 if __name__ == "__main__":
-    wheel_radius = 0.025  # Example wheel radius in meters (5 cm)
     while True:
-        avoid_obstacles(wheel_radius)  # Run the obstacle avoidance function
-        sleep(1)  # Delay for a bit to allow the robot to process
+        navigate()

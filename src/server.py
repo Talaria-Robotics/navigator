@@ -5,6 +5,7 @@ from floormap import FloorMap
 from sanic import Sanic, text, json, Request
 from orjson import dumps, loads
 from queue import SimpleQueue
+from obstacle_avoidance import navigate
 import threading
 import socket
 import os
@@ -29,7 +30,7 @@ class NavigatorContext:
     transitFeedSock: socket.socket
 
 ctx = NavigatorContext()
-ctx.floorplan = FloorMap(os.path.join("maps", "TestA.floormap"))
+ctx.floorplan = FloorMap(os.path.join("maps", "PIC_Sample_Map.floormap"))
 ctx.bins = {
     1: "Letter Slot 1",
     2: "Letter Slot 2",
@@ -137,6 +138,7 @@ def transitFeed():
             print(f"Package received: '{confirmationData}'")
             nextStopIndex += 1
         else:
+            navigate()
             # DEMO
-            time.sleep(4)
+            #time.sleep(4)
             # END DEMO
