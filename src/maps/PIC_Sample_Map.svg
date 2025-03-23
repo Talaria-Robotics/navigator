@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="2000.0"
+   height="1833.3333333333335"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="PIC_Sample_Map.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.42381817"
+     inkscape:cx="842.34236"
+     inkscape:cy="1138.4599"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     id="('mail', 'j2')"
+     d="M 791.66666,1310.4138 H 1458.3333"
+     stroke-width="27.7778"
+     stroke="#c83737"
+     fill="transparent"
+     style="fill:none" />
+  <path
+     id="('j2', 'room2')"
+     d="M 1458.3333,1310.4138 H 1791.6667"
+     stroke-width="27.7778"
+     stroke="#c83737"
+     fill="transparent"
+     style="fill:none" />
+  <path
+     id="('j2', 'j1')"
+     d="M 1458.3333,1310.4138 V 893.74713"
+     stroke-width="27.7778"
+     stroke="#c83737"
+     fill="transparent"
+     style="fill:none" />
+  <path
+     id="('j1', 'room1')"
+     d="M 1458.3333,893.74713 H 1791.6667"
+     stroke-width="27.7778"
+     stroke="#c83737"
+     fill="transparent"
+     style="fill:none" />
+  <path
+     id="('mail', 'room3')"
+     d="M 791.66666,1310.4138 H 208.33332 V 393.74713"
+     stroke-width="27.7778"
+     stroke="#c83737"
+     fill="transparent"
+     style="fill:none" />
+  <path
+     id="('room3', 'j1')"
+     d="M 208.33332,393.74713 H 541.66666 V 893.74713 H 1458.3333"
+     stroke-width="27.7778"
+     stroke="#c83737"
+     fill="transparent"
+     style="fill:none" />
+  <circle
+     id="mail"
+     cx="791.66669"
+     cy="-1310.4138"
+     r="27.777779"
+     fill="#005000"
+     transform="scale(1,-1)"
+     style="stroke-width:13.8889" />
+  <circle
+     id="j2"
+     cx="1458.3334"
+     cy="-1310.4138"
+     r="27.777779"
+     fill="#500000"
+     transform="scale(1,-1)"
+     style="stroke-width:13.8889" />
+  <circle
+     id="room2"
+     cx="1791.6666"
+     cy="-1310.4138"
+     r="27.777779"
+     fill="#005000"
+     transform="scale(1,-1)"
+     style="stroke-width:13.8889" />
+  <circle
+     id="j1"
+     cx="1458.3334"
+     cy="-893.74713"
+     r="27.777779"
+     fill="#500000"
+     transform="scale(1,-1)"
+     style="stroke-width:13.8889" />
+  <circle
+     id="room1"
+     cx="1791.6666"
+     cy="-893.74713"
+     r="27.777779"
+     fill="#005000"
+     transform="scale(1,-1)"
+     style="stroke-width:13.8889" />
+  <circle
+     id="room3"
+     cx="208.33333"
+     cy="-393.74713"
+     r="27.777779"
+     fill="#005000"
+     transform="scale(1,-1)"
+     style="stroke-width:13.8889" />
+</svg>

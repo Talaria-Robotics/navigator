@@ -125,7 +125,7 @@ class FloorMap:
 if __name__ == "__main__":
     from pathlib import Path 
 
-    floormapPath = Path(".", "maps", "FermierHall_Small.floormap")
+    floormapPath = Path(".", "maps", "PIC_Sample_Map.floormap")
     floormap = FloorMap(str(floormapPath))
 
     floormapSvgPath = floormapPath.with_suffix(".svg")

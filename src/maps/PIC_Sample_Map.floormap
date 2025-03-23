@@ -22,4 +22,4 @@ j2 > room2:
 j2 > j1: 
 j1 > room1:
 mail > room3: H -42
-room3 > j1: H 24 V -36
+room3 > j1: h 24 v -36
