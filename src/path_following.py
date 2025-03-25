@@ -99,6 +99,7 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
         while wheelVelL != 0 or wheelVelR != 0:
             driveOpenLoop(wheelVelL, wheelVelR)
             angleL, angleR = readShaftPositions()
+            print(f"L:{angleL}, R:{angleR}")
             angDispL += angleL - lastAngleL
             angDispR += angleR - lastAngleR
 
@@ -107,7 +108,7 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
             if angDispR > targetAngDispR:
                 wheelVelR = 0
 
-            print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+            #print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
 
         botState += correction
 
