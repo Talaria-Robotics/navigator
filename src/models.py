@@ -40,7 +40,8 @@ class MailRouteStop(Serializable):
 class RequestedMailRoute(Serializable):
     stops: Dict[int, str]
 
-    def __init__(self, json: dict[str, str]) -> None:
+    def __init__(self, json: dict[str, str] | None = None) -> None:
         self.stops = {}
-        for k, v in json.items():
-            self.stops[int(k)] = str(v)
+        if json is not None:
+            for k, v in json.items():
+                self.stops[int(k)] = str(v)
