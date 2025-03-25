@@ -2,9 +2,9 @@ from queue import Queue
 from floormap import FloorMap
 from mail_route_events import *
 from models import *
-#from obstacle_avoidance import navigate
 from svgpathtools import Path
 from typing import Callable
+from nav_utils import RigidBodyState, discretizePath
 
 
 def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, str],
@@ -27,8 +27,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         stopQueue.put(stopId)
 
     statusesSent: int = 0
-    currentPosition: complex
-    currentHeading: float
+    botState = RigidBodyState()
     nextStopId: str | None = stopQueue.get()
     
     for nextNodeIndex in range(1, len(tripNodes)):
@@ -70,13 +69,15 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
                 #emitEvent(inTransitEvent)
                 statusesSent += 1
 
-        currentPosition = floorplan.nodes[currentNodeId]
+        botState.pos = floorplan.nodes[currentNodeId]
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
         follow_path(pathToFollow)
 
-def follow_path(path: Path) -> tuple[complex, float]:
-    # TODO: Break the path into small, linear segments
+def follow_path(path: Path) -> RigidBodyState:
+    segments = discretizePath(path)
+    for seg in segments:
+        print(seg)
     pass
 
 if __name__ == "__main__":
