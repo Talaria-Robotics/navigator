@@ -95,8 +95,8 @@ def transitFeedEntry():
     print(f"Connected to Control Panel at {addr}, got {start}")
 
     transitFeed(app.ctx.requestedRoute,
-                lambda e: sendEventDebug(e, sock, addr),
-                lambda: waitForConfirmationDebug(sock))
+                lambda e: sendEventToSocket(e, sock, addr),
+                lambda: waitForConfirmationFromSocket(sock))
 
 def sendEventToSocket(event: MailRouteEvent, sock: socket.socket, addr: str):
     eventStr = dumps(event, default=vars)
