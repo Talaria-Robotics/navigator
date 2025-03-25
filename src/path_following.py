@@ -72,13 +72,19 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         botState.pos = floorplan.nodes[currentNodeId]
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
-        follow_path(pathToFollow)
+        follow_path(botState, pathToFollow)
 
-def follow_path(path: Path) -> RigidBodyState:
+def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
     segments = discretizePath(path)
     for seg in segments:
-        print(seg)
-    pass
+        correction = seg - botState
+        print(f"Navi: Need to correct by {correction}")
+
+        # TODO: Keep track of how much the wheels rotate,
+        # as this is what allows us to compute the actual position
+        botState += correction
+
+    return botState
 
 if __name__ == "__main__":
     import os
