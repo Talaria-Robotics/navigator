@@ -12,8 +12,23 @@ class RigidBodyState:
     dir: float = 0.0
     """The heading angle in radians relative to the forward direction of the body."""
 
+    def __init__(self, pos: complex = complex(0), dir: float = 0.0):
+        self.pos = pos
+        self.dir = dir
+
     def __str__(self) -> str:
         return f"{self.pos.real:3f}\", {self.pos.imag:3f}\", {np.rad2deg(self.dir):3f}°"
+    
+    def __add__(self, other):
+        pos = self.pos + other.pos
+        dir = self.dir + other.dir
+        return RigidBodyState(pos, np.fmod(dir, 2 * np.pi))
+    
+    def __sub__(self, other):
+        pos = self.pos - other.pos
+        dir = self.dir - other.dir
+        return RigidBodyState(pos, np.fmod(dir, 2 * np.pi))
+
 
 def bboxCombine(bboxes: list[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
     xmin, xmax, ymin, ymax = sys.float_info.max, sys.float_info.min, sys.float_info.max, sys.float_info.min
