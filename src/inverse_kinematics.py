@@ -12,12 +12,24 @@ import time
 # Wheelbase width = 23 1/8"
 R = 1.15625                           # wheel radius
 L = 11.5625                           # half of the wheelbase
-A = np.array([[1/R, -L/R], 
-              [1/R, L/R]])          # matrix A * [xd, td] = [pdl, pdr]
+KWB = L / R                           # Wheel revolutions per body revolution
+A = np.array([[1/R, -KWB], 
+              [1/R, KWB]])          # matrix A * [xd, td] = [pdl, pdr]
 
 # define constraints for x_dot and theta_dot
 max_xd = 0.4                        # maximum achievable x_dot (m/s), forward speed
 max_td = (max_xd / L)               # maximum achievable theta_dot (rad/s), rotational speed
+
+def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
+    """
+    Effectively converts a body rotation to wheel rotations.
+    Computes the angular displacement of the left and right wheels
+    in order to rotate a rigid body by turnAngle radians with a
+    turning radius of 0.
+    Return value is (left, right) in radians.
+    """
+    wheelAngle = bodyAngle / KWB
+    return -wheelAngle, wheelAngle
 
 # Transform joystick position with x and y ranging (-1,1) into robot speed [xdot, thetadot]
 def map_speeds(B):                          

@@ -5,7 +5,10 @@ from models import *
 from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
-
+from speed_control import driveOpenLoop
+from inverse_kinematics import computeWheelAnglesForTurn
+from encoder import readShaftPositions
+import numpy as np
 
 def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, str],
                 emitEvent: Callable[[MailRouteEvent], None],
@@ -75,13 +78,37 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         follow_path(botState, pathToFollow)
 
 def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
+    maxWheelVelForTurn = 0.05
+    maxWheelVelForForward = 1.0
+
     segments = discretizePath(path)
-    for seg in segments:
-        correction = seg - botState
+    for targetState in segments:
+        correction = targetState - botState
         print(f"Navi: Need to correct by {correction}")
 
         # TODO: Keep track of how much the wheels rotate,
-        # as this is what allows us to compute the actual position
+        # as this is what allows us to compute the actual position.
+        # Closed loop control!!!
+
+        # Correct heading
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
+        lastAngleL, lastAngleR = readShaftPositions()
+        angDispL, angDispR = 0, 0
+        wheelVelL, wheelVelR = maxWheelVelForTurn * np.sign(targetAngDispL), maxWheelVelForTurn * np.sign(targetAngDispR)
+        
+        while wheelVelL != 0 or wheelVelR != 0:
+            driveOpenLoop(wheelVelL, wheelVelR)
+            angleL, angleR = readShaftPositions()
+            angDispL += angleL - lastAngleL
+            angDispR += angleR - lastAngleR
+
+            if angDispL > targetAngDispL:
+                wheelVelL = 0
+            if angDispR > targetAngDispR:
+                wheelVelR = 0
+
+            print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+
         botState += correction
 
     return botState
