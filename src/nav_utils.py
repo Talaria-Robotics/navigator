@@ -13,7 +13,7 @@ class RigidBodyState:
     """The heading angle in radians relative to the forward direction of the body."""
 
     def __str__(self) -> str:
-        return f"{self.pos.real}\", {self.pos.imag}\", {np.rad2deg(self.dir)}°"
+        return f"{self.pos.real:3f}\", {self.pos.imag:3f}\", {np.rad2deg(self.dir):3f}°"
 
 def bboxCombine(bboxes: list[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
     xmin, xmax, ymin, ymax = sys.float_info.max, sys.float_info.min, sys.float_info.max, sys.float_info.min
@@ -65,5 +65,14 @@ def discretizePath(path: Path) -> Generator[RigidBodyState]:
         if t > 1.0:
             break
 
-        # TODO: Use t-value to get position and orientation
-        yield t
+        # Use t-value to get position and orientation
+        baseVec = path.point(t)
+        tangentVec = path.unit_tangent(t)
+        heading = np.angle(tangentVec)
+
+        # Note that the heading is in radians, relative to +x
+        
+        state = RigidBodyState()
+        state.pos = baseVec
+        state.dir = heading
+        yield state
