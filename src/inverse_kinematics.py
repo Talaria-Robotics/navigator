@@ -8,8 +8,10 @@ import numpy as np                          # to perform matrix operations
 import time
 
 # define robot geometry
-R = 0.041                           # wheel radius
-L = 0.201                           # half of the wheelbase
+# Tread height = 2 5/16"
+# Wheelbase width = 23 1/8"
+R = 1.15625                           # wheel radius
+L = 11.5625                           # half of the wheelbase
 A = np.array([[1/R, -L/R], 
               [1/R, L/R]])          # matrix A * [xd, td] = [pdl, pdr]
 
