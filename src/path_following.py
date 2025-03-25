@@ -104,13 +104,12 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
 
             lastAngleL, lastAngleR = angleL, angleR
 
-            print(f"L:{angDispL}, R:{angDispR}")
             if angDispL > targetAngDispL:
                 wheelVelL = 0
             if angDispR > targetAngDispR:
                 wheelVelR = 0
 
-            #print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+            print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
 
         botState += correction
 
