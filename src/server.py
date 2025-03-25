@@ -9,7 +9,6 @@ from obstacle_avoidance import navigate
 import threading
 import socket
 import os
-import time
 
 TRANSITFEED_UDP_PORT = 8076
 
@@ -60,7 +59,7 @@ async def getPossibleRouteInfo(request: Request):
 
     routeInfo.rooms = [
         MailRouteRoom(id, name)
-        for id, name in floorplan.rooms.items()
+        for id, name in floorplan.rooms.items()[1:]
     ]
 
     routeInfo.bins = [
