@@ -48,8 +48,8 @@ def scaleMotorEffort(u):                            # send the control effort si
 
 def driveOpenLoop(pdTargets):                       # Pass Phi dot targets to this function
     duties = openLoop(pdTargets[0], pdTargets[1])   # produce duty cycles from the phi dots
-    m.sendLeft(duties[0])                           # send command to motors
-    m.sendRight(duties[1])                          # send command to motors
+    m.driveLeft(duties[0])                           # send command to motors
+    m.driveRight(duties[1])                          # send command to motors
 
 def driveClosedLoop(pdt, pdc, de_dt):               # this function runs motors for closed loop PID control
     global u_integral
@@ -75,6 +75,6 @@ def driveClosedLoop(pdt, pdc, de_dt):               # this function runs motors 
     u[1] = sorted([-1, u[1], 1])[1]                                 # within [-1, 1]
 
     # SEND SIGNAL TO MOTORS
-    m.sendLeft(round(u[0], 2))                                        # must round to ensure driver handling!
-    m.sendRight(round(u[1], 2))                                        # must round to ensure driver handling!
+    m.driveLeft(round(u[0], 2))                                        # must round to ensure driver handling!
+    m.driveRight(round(u[1], 2))                                        # must round to ensure driver handling!
     return
