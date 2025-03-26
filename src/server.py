@@ -94,9 +94,50 @@ def transitFeedEntry():
     start, addr = sock.recvfrom(512)
     print(f"Connected to Control Panel at {addr}, got {start}")
 
-    transitFeed(app.ctx.requestedRoute,
-                lambda e: sendEventToSocket(e, sock, addr),
-                lambda: waitForConfirmationFromSocket(sock))
+    if False:
+        transitFeed(app.ctx.requestedRoute,
+                    lambda e: sendEventToSocket(e, sock, addr),
+                    lambda: waitForConfirmationFromSocket(sock))
+    else:
+        # DEMO
+        import time
+        print("Preparing route...")
+        floorplan = app.ctx.floorplan
+        stopIds = [*app.ctx.requestedRoute.stops.values()]
+        tripStops = floorplan.planTrip(stopIds)
+        print(f"Planned route: {tripStops}")
+
+        for binNumber, roomId in app.ctx.requestedRoute.stops.items():
+            roomName = app.ctx.floorplan.rooms[roomId]
+            room = MailRouteRoom(roomId, roomName)
+            
+            binName = app.ctx.bins[binNumber]
+            bin = MailBin(binNumber, binName)
+
+            app.ctx.events.put(InTransitEvent(room))
+            app.ctx.events.put(ArrivedAtStopEvent(room, bin))
+        
+        app.ctx.events.put(ReturnHomeEvent())
+        
+        statusesSent = 0
+        nextStopIndex = 0
+
+        while not app.ctx.events.empty():
+            event: MailRouteEvent = app.ctx.events.get()
+            event.orderNumber = statusesSent
+            
+            sendEventToSocket(event, sock, addr)
+            print(f"Sent #{statusesSent}")
+            statusesSent += 1
+            
+            if type(event) is ArrivedAtStopEvent:
+                # Wait for recipient to confirm
+                waitForConfirmationFromSocket(sock)
+                print(f"Package received")
+                nextStopIndex += 1
+            else:
+                time.sleep(4)
+        # END DEMO
 
 def sendEventToSocket(event: MailRouteEvent, sock: socket.socket, addr: str):
     eventStr = dumps(event, default=vars)
@@ -107,5 +148,5 @@ def waitForConfirmationFromSocket(sock: socket.socket):
     while True:
         # Wait for message starting with '%'
         confirmationData = sock.recv(512)
-        if confirmationData.startswith(0x25):
+        if confirmationData.startswith(b'%'):
             break
