@@ -123,7 +123,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
                 doneR = True
                 driveRight(0)
 
-            print(f"Navi: {angDispL / targetAngDispL:3f}%L {angDispR / targetAngDispR:3f}%R")
+            print(f"Navi: L:{angDispL / (2 * np.pi):3f} rev, {angDispR / (2 * np.pi):3f} rev")
     except KeyboardInterrupt:
         drive(0)
         print("Navi: Stopping")
