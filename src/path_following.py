@@ -93,8 +93,6 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
 
         # Correct forward
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-        print(f"Rotate wheels L:{targetAngDispL} R:{targetAngDispR} rads")
-        input("Press any key to confirm...")
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0)
 
         botState += correction
@@ -107,8 +105,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
     wheelVelL, wheelVelR = angVel * np.sign(targetAngDispL), angVel * np.sign(targetAngDispR)
     
     try:
+        driveOpenLoop((wheelVelL, wheelVelR))
         while wheelVelL != 0 or wheelVelR != 0:
-            driveOpenLoop((wheelVelL, wheelVelR))
             angleL, angleR = readShaftPositions()
             angDispL += angleL - lastAngleL
             angDispR += angleR - lastAngleR
@@ -117,10 +115,12 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
 
             if angDispL > targetAngDispL:
                 wheelVelL = 0
+                driveOpenLoop((wheelVelL, wheelVelR))
             if angDispR > targetAngDispR:
                 wheelVelR = 0
+                driveOpenLoop((wheelVelL, wheelVelR))
 
-            print(f"Navi: {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+            print(f"Navi: {angDispL / targetAngDispL:3f}%L {angDispR / targetAngDispR:3f}%R")
     except KeyboardInterrupt:
         driveOpenLoop((0, 0))
         print("Navi: Stopping")
