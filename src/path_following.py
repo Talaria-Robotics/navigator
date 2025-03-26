@@ -111,8 +111,17 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
         doneL, doneR = False, False
         while not (doneL and doneR):
             angleL, angleR = readShaftPositions()
-            angDispL += angleL - lastAngleL
-            angDispR += angleR - lastAngleR
+            
+            # Handle when angle overflows (crossing 0 rad)
+            dThetaL = angleL - lastAngleL
+            if dThetaL < 0:
+                dThetaL = angleL + (2*np.pi - lastAngleL)
+            angDispL += dThetaL
+
+            dThetaR = angleR - lastAngleR
+            if dThetaR < 0:
+                dThetaR = angleR + (2*np.pi - lastAngleR)
+            angDispR += dThetaR
 
             lastAngleL, lastAngleR = angleL, angleR
 
