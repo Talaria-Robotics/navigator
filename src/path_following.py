@@ -96,20 +96,24 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
         angDispL, angDispR = 0, 0
         wheelVelL, wheelVelR = maxWheelVelForTurn * np.sign(targetAngDispL), maxWheelVelForTurn * np.sign(targetAngDispR)
         
-        while wheelVelL != 0 or wheelVelR != 0:
-            driveOpenLoop((wheelVelL, wheelVelR))
-            angleL, angleR = readShaftPositions()
-            angDispL += angleL - lastAngleL
-            angDispR += angleR - lastAngleR
+        try:
+            while wheelVelL != 0 or wheelVelR != 0:
+                driveOpenLoop((wheelVelL, wheelVelR))
+                angleL, angleR = readShaftPositions()
+                angDispL += angleL - lastAngleL
+                angDispR += angleR - lastAngleR
 
-            lastAngleL, lastAngleR = angleL, angleR
+                lastAngleL, lastAngleR = angleL, angleR
 
-            if angDispL > targetAngDispL:
-                wheelVelL = 0
-            if angDispR > targetAngDispR:
-                wheelVelR = 0
+                if angDispL > targetAngDispL:
+                    wheelVelL = 0
+                if angDispR > targetAngDispR:
+                    wheelVelR = 0
 
-            print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+                print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+        except KeyboardInterrupt:
+            print("Stopping nav")
+            driveOpenLoop((0, 0))
 
         botState += correction
 
