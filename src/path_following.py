@@ -78,7 +78,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         follow_path(botState, pathToFollow)
 
 def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
-    maxWheelVelForTurn = 0.05
+    maxWheelVelForTurn = 1.5
     maxWheelVelForForward = 1.0
 
     segments = discretizePath(path)

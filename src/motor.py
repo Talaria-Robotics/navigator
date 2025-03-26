@@ -57,8 +57,8 @@ if __name__ == "__main__":
         time.sleep(4)
         
         print("I'll try spinning, that's a good trick!")
-        driveLeft(0.4)
-        driveRight(-0.4)
+        driveLeft(1.5)
+        driveRight(-1.5)
         time.sleep(4)
         
         print("Stopping motors")
