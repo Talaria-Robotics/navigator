@@ -5,7 +5,8 @@ from models import *
 from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
-from speed_control import driveOpenLoop
+#from speed_control import driveOpenLoop
+from motor import drive, driveLeft, driveRight
 from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward
 from encoder import readShaftPositions
 import numpy as np
@@ -105,7 +106,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
     wheelVelL, wheelVelR = angVel * np.sign(targetAngDispL), angVel * np.sign(targetAngDispR)
     
     try:
-        driveOpenLoop((wheelVelL, wheelVelR))
+        driveLeft(0.8)
+        driveRight(0.8)
         while wheelVelL != 0 or wheelVelR != 0:
             angleL, angleR = readShaftPositions()
             angDispL += angleL - lastAngleL
@@ -114,15 +116,13 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
             lastAngleL, lastAngleR = angleL, angleR
 
             if angDispL > targetAngDispL:
-                wheelVelL = 0
-                driveOpenLoop((wheelVelL, wheelVelR))
+                driveLeft(0)
             if angDispR > targetAngDispR:
-                wheelVelR = 0
-                driveOpenLoop((wheelVelL, wheelVelR))
+                driveRight(0)
 
             print(f"Navi: {angDispL / targetAngDispL:3f}%L {angDispR / targetAngDispR:3f}%R")
     except KeyboardInterrupt:
-        driveOpenLoop((0, 0))
+        drive(0, 0)
         print("Navi: Stopping")
 
 if __name__ == "__main__":
