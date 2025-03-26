@@ -1,7 +1,34 @@
+from collections.abc import Generator
 from svgpathtools import Path
 from numpy import arange
-from typing import Tuple
+from typing import  Tuple
 import sys
+import numpy as np
+
+class RigidBodyState:
+    pos: complex = complex(0)
+    """The position of the body's center of mass."""
+
+    dir: float = 0.0
+    """The heading angle in radians relative to the forward direction of the body."""
+
+    def __init__(self, pos: complex = complex(0), dir: float = 0.0):
+        self.pos = pos
+        self.dir = dir
+
+    def __str__(self) -> str:
+        return f"{self.pos.real:3f}\", {self.pos.imag:3f}\", {np.rad2deg(self.dir):3f}°"
+    
+    def __add__(self, other):
+        pos = self.pos + other.pos
+        dir = self.dir + other.dir
+        return RigidBodyState(pos, np.fmod(dir, 2 * np.pi))
+    
+    def __sub__(self, other):
+        pos = self.pos - other.pos
+        dir = self.dir - other.dir
+        return RigidBodyState(pos, np.fmod(dir, 2 * np.pi))
+
 
 def bboxCombine(bboxes: list[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
     xmin, xmax, ymin, ymax = sys.float_info.max, sys.float_info.min, sys.float_info.max, sys.float_info.min
@@ -44,3 +71,23 @@ def _closestPointOnPath(path: Path, point: complex, step: float) -> Tuple[float,
             closest = (float(t), pathPoint, distance)
         
     return closest
+
+def discretizePath(path: Path) -> Generator[RigidBodyState]:
+    # Determine delta t to achieve segments of <1 inch
+    dt = path.ilength(1.0)
+
+    for t in np.arange(0.0, 1.0 + dt, dt):
+        if t > 1.0:
+            break
+
+        # Use t-value to get position and orientation
+        baseVec = path.point(t)
+        tangentVec = path.unit_tangent(t)
+        heading = np.angle(tangentVec)
+
+        # Note that the heading is in radians, relative to +x
+        
+        state = RigidBodyState()
+        state.pos = baseVec
+        state.dir = heading
+        yield state

@@ -28,40 +28,39 @@ def computePWM(speed: float) -> tuple[float, float]:
         chB = np.round(chB, 2)
         
         return chA, chB
-"""
-def sendLeft(mySpeed: float):
-    myPWM = computePWM(mySpeed)
-    left_chB.value = myPWM[0]
-    left_chA.value = myPWM[1]
 
-def sendRight(mySpeed: float):
-    myPWM = computePWM(mySpeed)
-    right_chB.value = myPWM[0]
-    right_chA.value = myPWM[1]
-"""
-def drive(mySpeed: float):
-    myPWM = computePWM(mySpeed)
-    left_chB.value = myPWM[0]
-    left_chA.value = myPWM[1]
-    right_chB.value = myPWM[0]
-    right_chA.value = myPWM[1]
+def driveLeft(speed: float):
+    motorPWM = computePWM(speed)
+    left_chB.value = motorPWM[0]
+    left_chA.value = motorPWM[1]
+
+def driveRight(speed: float):
+    motorPWM = computePWM(speed)
+    right_chB.value = motorPWM[0]
+    right_chA.value = motorPWM[1]
+
+def drive(speed: float):
+    motorPWM = computePWM(speed)
+    left_chB.value = motorPWM[0]
+    left_chA.value = motorPWM[1]
+    right_chB.value = motorPWM[0]
+    right_chA.value = motorPWM[1]
 
 if __name__ == "__main__":
     while True:
-        print("Driving left motor")
-        # sendLeft(0.8)
-        # sendRight(0.8)
+        print("Driving forward")
         drive(0.8)
         time.sleep(4)
 
-        print("Driving right motor")
-        # sendLeft(-0.8)
-        # sendRight(-0.8)
+        print("Driving backward")
         drive(-0.8)
         time.sleep(4)
         
+        print("I'll try spinning, that's a good trick!")
+        driveLeft(1.0)
+        driveRight(-1.0)
+        time.sleep(4)
+        
         print("Stopping motors")
-        # sendLeft(0)
-        # sendRight(0)
         drive(0)
         time.sleep(4)

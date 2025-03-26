@@ -49,6 +49,9 @@ if __name__ == "__main__":
     from time import sleep
 
     init()
-    while True:
-        print(scan())
-        sleep(1.0)
+    try:
+        while True:
+            print(scan())
+            sleep(1.0)
+    except KeyboardInterrupt:
+        disconnect()
