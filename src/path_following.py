@@ -108,7 +108,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
     try:
         driveLeft(0.8)
         driveRight(0.8)
-        while wheelVelL != 0 or wheelVelR != 0:
+        doneL, doneR = False, False
+        while not (doneL and doneR):
             angleL, angleR = readShaftPositions()
             angDispL += angleL - lastAngleL
             angDispR += angleR - lastAngleR
@@ -116,13 +117,15 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
             lastAngleL, lastAngleR = angleL, angleR
 
             if angDispL > targetAngDispL:
+                doneL = True
                 driveLeft(0)
             if angDispR > targetAngDispR:
+                doneR = True
                 driveRight(0)
 
             print(f"Navi: {angDispL / targetAngDispL:3f}%L {angDispR / targetAngDispR:3f}%R")
     except KeyboardInterrupt:
-        drive(0, 0)
+        drive(0)
         print("Navi: Stopping")
 
 if __name__ == "__main__":
