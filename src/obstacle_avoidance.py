@@ -1,5 +1,5 @@
 import inverse_kinematics as ik
-import L2_speed_control as sc
+import speed_control as sc
 from time import sleep
 import vector as vec
 import math
