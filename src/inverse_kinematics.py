@@ -43,7 +43,7 @@ def computeWheelAnglesForForward(forwardDistance: float) -> tuple[float, float]:
     Return value is (left, right) in radians.
     """
     wheelAngle = forwardDistance / R
-    return -wheelAngle, wheelAngle
+    return wheelAngle, wheelAngle
 
 # Transform joystick position with x and y ranging (-1,1) into robot speed [xdot, thetadot]
 def map_speeds(B):                          
