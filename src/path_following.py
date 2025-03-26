@@ -6,7 +6,7 @@ from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
 from speed_control import driveOpenLoop
-from inverse_kinematics import computeWheelAnglesForTurn
+from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward
 from encoder import readShaftPositions
 import numpy as np
 
@@ -78,9 +78,6 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         follow_path(botState, pathToFollow)
 
 def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
-    maxWheelVelForTurn = 1.5
-    maxWheelVelForForward = 1.0
-
     segments = discretizePath(path)
     for targetState in segments:
         correction = targetState - botState
@@ -91,33 +88,42 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
         # Closed loop control!!!
 
         # Correct heading
-        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-        lastAngleL, lastAngleR = readShaftPositions()
-        angDispL, angDispR = 0, 0
-        wheelVelL, wheelVelR = maxWheelVelForTurn * np.sign(targetAngDispL), maxWheelVelForTurn * np.sign(targetAngDispR)
-        
-        try:
-            while wheelVelL != 0 or wheelVelR != 0:
-                driveOpenLoop((wheelVelL, wheelVelR))
-                angleL, angleR = readShaftPositions()
-                angDispL += angleL - lastAngleL
-                angDispR += angleR - lastAngleR
+        #targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
+        #driveToAngularDisplacement(targetAngDispL, targetAngDispR, 1.5)
 
-                lastAngleL, lastAngleR = angleL, angleR
-
-                if angDispL > targetAngDispL:
-                    wheelVelL = 0
-                if angDispR > targetAngDispR:
-                    wheelVelR = 0
-
-                print(f"Turning, {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
-        except KeyboardInterrupt:
-            print("Stopping nav")
-            driveOpenLoop((0, 0))
+        # Correct forward
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
+        print(f"Rotate wheels L:{targetAngDispL} R:{targetAngDispR} rads")
+        input("Press any key to confirm...")
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0)
 
         botState += correction
 
     return botState
+
+def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, angVel: float):
+    lastAngleL, lastAngleR = readShaftPositions()
+    angDispL, angDispR = 0, 0
+    wheelVelL, wheelVelR = angVel * np.sign(targetAngDispL), angVel * np.sign(targetAngDispR)
+    
+    try:
+        while wheelVelL != 0 or wheelVelR != 0:
+            driveOpenLoop((wheelVelL, wheelVelR))
+            angleL, angleR = readShaftPositions()
+            angDispL += angleL - lastAngleL
+            angDispR += angleR - lastAngleR
+
+            lastAngleL, lastAngleR = angleL, angleR
+
+            if angDispL > targetAngDispL:
+                wheelVelL = 0
+            if angDispR > targetAngDispR:
+                wheelVelR = 0
+
+            print(f"Navi: {angDispL / targetAngDispL}%L {angDispR / targetAngDispR}%R")
+    except KeyboardInterrupt:
+        driveOpenLoop((0, 0))
+        print("Navi: Stopping")
 
 if __name__ == "__main__":
     import os
