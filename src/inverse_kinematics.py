@@ -32,7 +32,8 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     turning radius of 0.
     Return value is (left, right) in radians.
     """
-    wheelAngle = bodyAngle / KWB
+    # Constant is ratio between one body angle unit and one wheel angle unit
+    wheelAngle = bodyAngle * 10.0544
     return -wheelAngle, wheelAngle
 
 def computeWheelAnglesForForward(forwardDistance: float) -> tuple[float, float]:
@@ -42,7 +43,7 @@ def computeWheelAnglesForForward(forwardDistance: float) -> tuple[float, float]:
     in order to drive a rigid body forwardDistance inches.
     Return value is (left, right) in radians.
     """
-    wheelAngle = forwardDistance / R
+    wheelAngle = forwardDistance / (2 * np.pi * R)
     return wheelAngle, wheelAngle
 
 # Transform joystick position with x and y ranging (-1,1) into robot speed [xdot, thetadot]
