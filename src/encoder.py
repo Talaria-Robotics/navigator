@@ -1,5 +1,6 @@
 import smbus2
 import time
+from numpy import deg2rad
 
 # I2C bus
 bus = smbus2.SMBus(1)
@@ -41,6 +42,10 @@ def readShaftPositions() -> tuple[float, float]:
         angleR = 0
     
     return (angleL, angleR)
+
+def readShaftPositionsRad() -> tuple[float, float]:
+    angleLDeg, angleRDeg = readShaftPositions()
+    return (deg2rad(angleLDeg), deg2rad(angleRDeg))
 
 
 if __name__ == "__main__":
