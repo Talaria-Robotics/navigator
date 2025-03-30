@@ -122,6 +122,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
         driveLeft(0.8)
         driveRight(0.8)
         doneL, doneR = False, False
+        dataEntries = []
+
         while not (doneL and doneR):
             angleL, angleR = readShaftPositionsRad()
             
@@ -145,10 +147,13 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
                 doneR = True
                 driveRight(0)
 
-            logSession.writeEntry([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
+            dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
     except KeyboardInterrupt:
         drive(0)
         print("Navi: Stopping")
+    
+    for entry in dataEntries:
+        logSession.writeEntry(entry)
 
 if __name__ == "__main__":
     import os
