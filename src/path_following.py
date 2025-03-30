@@ -9,7 +9,7 @@ from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForF
 import data_log as dl
 import numpy as np
 
-MOCK = True
+MOCK = False
 
 if not MOCK:
     from motor import drive, driveLeft, driveRight
