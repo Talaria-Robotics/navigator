@@ -88,13 +88,13 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
 
 def follow_path(botState: RigidBodyState, path: Path,
                 logSession: dl.DataLogSession) -> RigidBodyState:
+    # Configure data logging
+    logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
+
     segments = discretizePath(path)
     for targetState in segments:
         correction = targetState - botState
         print(f"Navi: Need to correct by {correction}")
-
-        # Configure data logging
-        logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
 
         # TODO: Keep track of how much the wheels rotate,
         # as this is what allows us to compute the actual position.
