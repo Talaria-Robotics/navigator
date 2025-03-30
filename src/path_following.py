@@ -9,7 +9,7 @@ from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForF
 import data_log as dl
 import numpy as np
 
-MOCK = False
+MOCK = True
 
 if not MOCK:
     from motor import drive, driveLeft, driveRight
@@ -94,7 +94,6 @@ def follow_path(botState: RigidBodyState, path: Path,
     segments = discretizePath(path)
     for targetState in segments:
         correction = targetState - botState
-        print(f"Navi: Need to correct by {correction}")
 
         # TODO: Keep track of how much the wheels rotate,
         # as this is what allows us to compute the actual position.
@@ -110,6 +109,7 @@ def follow_path(botState: RigidBodyState, path: Path,
 
         botState += correction
 
+    print(f"Navi: {botState}")
     return botState
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
@@ -117,11 +117,13 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     targetAngDispL, targetAngDispR = np.rad2deg(targetAngDispL), np.rad2deg(targetAngDispR)
     lastAngleL, lastAngleR = readShaftPositions()
     angDispL, angDispR = 0, 0
+    angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
+
     oneRev = 360.0 #2 * np.pi
-    
+
     try:
-        driveLeft(0.8 * np.sign(targetAngDispL))
-        driveRight(0.8 * np.sign(targetAngDispR))
+        driveLeft(0.8 * angDispSignL)
+        driveRight(0.8 * angDispSignR)
         doneL, doneR = False, False
         dataEntries = []
 
@@ -160,6 +162,21 @@ if __name__ == "__main__":
     import os
     from orjson import dumps
     from time import sleep
+
+    with dl.startLogSession(f"plain_test") as logSession:
+        correction = RigidBodyState(complex(0, 12), 90.0)
+
+        # Set heading
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
+        print(f"Target angular displacement: {targetAngDispL:3f}°, {targetAngDispR:3f}°")
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+
+        # Set forward
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
+        print(f"Target angular displacement: {targetAngDispL:3f}°, {targetAngDispR:3f}°")
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+
+    exit()
 
     def sendEventDebug(event: MailRouteEvent):
         eventStr = dumps(event, default=vars)

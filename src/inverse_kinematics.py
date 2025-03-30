@@ -83,9 +83,11 @@ def wait_user():
 
 
 if __name__ == "__main__":
-    while True:
-        x_dot , theta_dot = wait_user()                     # user input [x_dot,theta_dot]
-        B = np.array([x_dot, theta_dot])                    # make user inputs into an array
-        phis = getPdTargets(B)                                   # convert [xd, td] to [pdl, pdr]
-        print("pdl",phis[0],"\tpdr",phis[1])                # print pdl & pdr
-        time.sleep(1)
+    turnAngle = 90.0
+    angleL, angleR = computeWheelAnglesForTurn(turnAngle)
+    print(f"{turnAngle:3f}°: L{angleL:3f}°, R{angleR:3f}°")
+
+    forwardDistance = 1.0
+    angleL, angleR = computeWheelAnglesForForward(forwardDistance)
+    print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
+
