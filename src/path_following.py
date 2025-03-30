@@ -13,10 +13,10 @@ MOCK = False
 
 if not MOCK:
     from motor import drive, driveLeft, driveRight
-    from encoder import readShaftPositionsRad
+    from encoder import readShaftPositions
 else:
     from motor_mock import drive, driveLeft, driveRight, startMock, stopMock
-    from encoder_mock import readShaftPositionsRad
+    from encoder_mock import readShaftPositions
 
 def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, str],
                 emitEvent: Callable[[MailRouteEvent], None],
@@ -102,40 +102,41 @@ def follow_path(botState: RigidBodyState, path: Path,
 
         # Correct heading
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0, logSession)
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # Correct forward
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0, logSession)
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         botState += correction
 
     return botState
 
-def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, angVel: float,
+def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
-    lastAngleL, lastAngleR = readShaftPositionsRad()
+    targetAngDispL, targetAngDispR = np.rad2deg(targetAngDispL), np.rad2deg(targetAngDispR)
+    lastAngleL, lastAngleR = readShaftPositions()
     angDispL, angDispR = 0, 0
-    wheelVelL, wheelVelR = angVel * np.sign(targetAngDispL), angVel * np.sign(targetAngDispR)
+    oneRev = 360.0 #2 * np.pi
     
     try:
-        driveLeft(0.8)
-        driveRight(0.8)
+        driveLeft(0.8 * np.sign(targetAngDispL))
+        driveRight(0.8 * np.sign(targetAngDispR))
         doneL, doneR = False, False
         dataEntries = []
 
         while not (doneL and doneR):
-            angleL, angleR = readShaftPositionsRad()
+            angleL, angleR = readShaftPositions()
             
-            # Handle when angle overflows (crossing 0 rad)
+            # Handle when angle overflows (crossing 0 deg)
             dThetaL = angleL - lastAngleL
             if dThetaL < 0:
-                dThetaL = angleL + (2*np.pi - lastAngleL)
+                dThetaL = angleL + (oneRev - lastAngleL)
             angDispL += dThetaL
 
             dThetaR = angleR - lastAngleR
             if dThetaR < 0:
-                dThetaR = angleR + (2*np.pi - lastAngleR)
+                dThetaR = angleR + (oneRev - lastAngleR)
             angDispR += dThetaR
 
             lastAngleL, lastAngleR = angleL, angleR
