@@ -93,6 +93,9 @@ def follow_path(botState: RigidBodyState, path: Path,
         correction = targetState - botState
         print(f"Navi: Need to correct by {correction}")
 
+        # Configure data logging
+        logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
+
         # TODO: Keep track of how much the wheels rotate,
         # as this is what allows us to compute the actual position.
         # Closed loop control!!!
@@ -111,8 +114,6 @@ def follow_path(botState: RigidBodyState, path: Path,
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, angVel: float,
                                logSession: dl.DataLogSession):
-    logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
-
     lastAngleL, lastAngleR = readShaftPositionsRad()
     angDispL, angDispR = 0, 0
     wheelVelL, wheelVelR = angVel * np.sign(targetAngDispL), angVel * np.sign(targetAngDispR)
