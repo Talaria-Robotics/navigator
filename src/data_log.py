@@ -41,7 +41,7 @@ class DataLogSession:
         return self._time_ms() - self._startedTimestamp
 
     def _time_ms(self) -> int:
-        return time.time_ns() // 1000
+        return time.time_ns() // 1000000
 
     def __enter__(self):
         if self.filePath:
