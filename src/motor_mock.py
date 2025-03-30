@@ -1,6 +1,8 @@
+import os
 import threading
 import time
 import numpy as np
+import signal
 from encoder_mock import readShaftPositions, setMockReading, encL, encR
 
 # Max motor speed
@@ -18,7 +20,7 @@ channels = {
 
 def _updateEncoders(channels: dict[str, float]):
     time_previous = time.time()
-    while True:
+    while len(channels) > 0:
         time_now = time.time()
         deltaTime = time_now - time_previous
         if deltaTime == 0.0:
@@ -36,7 +38,12 @@ def _updateEncoders(channels: dict[str, float]):
         time_previous = time_now
 
 thread = threading.Thread(target=_updateEncoders, args=(channels,))
-thread.start()
+
+def startMock():
+    thread.start()
+
+def stopMock():
+    channels.clear()
 
 # Speed percentage, in range [-1,1]
 def computePWM(speed: float) -> tuple[float, float]:

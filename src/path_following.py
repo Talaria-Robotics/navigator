@@ -5,16 +5,17 @@ from models import *
 from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
-#from speed_control import driveOpenLoop
 from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward
 import data_log as dl
 import numpy as np
 
-if True:
+MOCK = True
+
+if not MOCK:
     from motor import drive, driveLeft, driveRight
     from encoder import readShaftPositionsRad
 else:
-    from motor_mock import drive, driveLeft, driveRight
+    from motor_mock import drive, driveLeft, driveRight, startMock, stopMock
     from encoder_mock import readShaftPositionsRad
 
 def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, str],
@@ -175,4 +176,10 @@ if __name__ == "__main__":
     floorplan = FloorMap(os.path.join("maps", "PIC_Sample_Map.floormap"))
     print(floorplan.nodes)
 
+    if MOCK:
+        startMock()
+
     transitFeed(route, floorplan, bins, sendEventDebug, waitForConfirmationDebug)
+    
+    if MOCK:
+        stopMock()
