@@ -101,8 +101,8 @@ def follow_path(botState: RigidBodyState, path: Path,
         # Closed loop control!!!
 
         # Correct heading
-        #targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-        #driveToAngularDisplacement(targetAngDispL, targetAngDispR, 1.5)
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0, logSession)
 
         # Correct forward
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
