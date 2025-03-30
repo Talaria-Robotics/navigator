@@ -6,10 +6,16 @@ from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
 #from speed_control import driveOpenLoop
-from motor import drive, driveLeft, driveRight
 from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward
-from encoder import readShaftPositions
+import data_log as dl
 import numpy as np
+
+if True:
+    from motor import drive, driveLeft, driveRight
+    from encoder import readShaftPositionsRad
+else:
+    from motor_mock import drive, driveLeft, driveRight
+    from encoder_mock import readShaftPositionsRad
 
 def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, str],
                 emitEvent: Callable[[MailRouteEvent], None],
@@ -76,9 +82,11 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         botState.pos = floorplan.nodes[currentNodeId]
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
-        follow_path(botState, pathToFollow)
+        with dl.startLogSession(f"{currentNodeId}_to_{nextNodeId}") as logSession:
+            follow_path(botState, pathToFollow, logSession)
 
-def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
+def follow_path(botState: RigidBodyState, path: Path,
+                logSession: dl.DataLogSession) -> RigidBodyState:
     segments = discretizePath(path)
     for targetState in segments:
         correction = targetState - botState
@@ -94,14 +102,17 @@ def follow_path(botState: RigidBodyState, path: Path) -> RigidBodyState:
 
         # Correct forward
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0)
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, 2.0, logSession)
 
         botState += correction
 
     return botState
 
-def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, angVel: float):
-    lastAngleL, lastAngleR = readShaftPositions()
+def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, angVel: float,
+                               logSession: dl.DataLogSession):
+    logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
+
+    lastAngleL, lastAngleR = readShaftPositionsRad()
     angDispL, angDispR = 0, 0
     wheelVelL, wheelVelR = angVel * np.sign(targetAngDispL), angVel * np.sign(targetAngDispR)
     
@@ -110,7 +121,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
         driveRight(0.8)
         doneL, doneR = False, False
         while not (doneL and doneR):
-            angleL, angleR = readShaftPositions()
+            angleL, angleR = readShaftPositionsRad()
             
             # Handle when angle overflows (crossing 0 rad)
             dThetaL = angleL - lastAngleL
@@ -125,14 +136,14 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float, ang
 
             lastAngleL, lastAngleR = angleL, angleR
 
-            if angDispL > targetAngDispL:
+            if angDispL >= targetAngDispL:
                 doneL = True
                 driveLeft(0)
-            if angDispR > targetAngDispR:
+            if angDispR >= targetAngDispR:
                 doneR = True
                 driveRight(0)
 
-            print(f"Navi: L:{angDispL / (2 * np.pi):3f} rev, {angDispR / (2 * np.pi):3f} rev")
+            logSession.writeEntry([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
     except KeyboardInterrupt:
         drive(0)
         print("Navi: Stopping")
