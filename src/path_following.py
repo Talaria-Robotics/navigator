@@ -5,7 +5,7 @@ from models import *
 from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
-from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward
+from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 import numpy as np
 
@@ -134,14 +134,10 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             print(f"Read {angleL} {angleR}")
             
             # Handle when angle overflows (crossing 0 deg)
-            dThetaL = angleL - lastAngleL
-            if dThetaL < 0:
-                dThetaL = angleL + (oneRev - lastAngleL)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
             angDispL += dThetaL
 
-            dThetaR = angleR - lastAngleR
-            if dThetaR < 0:
-                dThetaR = angleR + (oneRev - lastAngleR)
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
 
             print(f"Disp: {angDispL}, {angDispR}")
