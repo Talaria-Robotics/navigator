@@ -8,6 +8,7 @@ from nav_utils import RigidBodyState, discretizePath
 from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 import numpy as np
+from time import sleep
 
 MOCK = False
 
@@ -131,16 +132,13 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
         print("Entering step loop...")
         while not (doneL and doneR):
             angleL, angleR = readShaftPositions()
-            print(f"Read {angleL} {angleR}")
             
             # Handle when angle overflows (crossing 0 deg)
-            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL) / 2
             angDispL += dThetaL
 
-            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR) / 2
             angDispR += dThetaR
-
-            print(f"Disp: {angDispL}, {angDispR}")
 
             lastAngleL, lastAngleR = angleL, angleR
 
@@ -150,6 +148,10 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             if angDispR >= targetAngDispR:
                 doneR = True
                 driveRight(0)
+
+            # Ensure the delta theta is greater than the error
+            # in the encoder measurements
+            sleep(0.1)
 
             dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
     except KeyboardInterrupt:
