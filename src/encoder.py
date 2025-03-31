@@ -50,9 +50,17 @@ def readShaftPositionsRad() -> tuple[float, float]:
 
 if __name__ == "__main__":
     print("Testing Encoders")
-    while True:
-      encL_val, encR_val = readShaftPositions()
-      
-      print(f"Right: {encR_val}")
 
-      time.sleep(0.25)
+    _, previousAngle = readShaftPositions()
+    while True:
+        cummulativeDisp = 0
+        _, currentAngle = readShaftPositions()
+
+        dThetaL = currentAngle - previousAngle
+        if dThetaL < 0:
+            dThetaL = currentAngle + (360.0 - previousAngle)
+        cummulativeDisp += dThetaL
+
+        print("{cummulativeDisp:3f}")
+
+        time.sleep(0.25)
