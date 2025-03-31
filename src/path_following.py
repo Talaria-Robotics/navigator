@@ -115,7 +115,7 @@ def follow_path(botState: RigidBodyState, path: Path,
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
-    targetAngDispL, targetAngDispR = np.rad2deg(targetAngDispL), np.rad2deg(targetAngDispR)
+    targetAngDispL, targetAngDispR = targetAngDispL, targetAngDispR
     lastAngleL, lastAngleR = readShaftPositions()
     angDispL, angDispR = 0, 0
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
@@ -142,16 +142,19 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
             lastAngleL, lastAngleR = angleL, angleR
 
-            if angDispL >= targetAngDispL:
+            targetDeltaL = abs(angDispL - targetAngDispL)
+            targetDeltaR = abs(angDispR - targetAngDispR)
+            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
+            if targetDeltaL < 10.0:
                 doneL = True
                 driveLeft(0)
-            if angDispR >= targetAngDispR:
+            if targetDeltaR < 10.0:
                 doneR = True
                 driveRight(0)
 
             # Ensure the delta theta is greater than the error
             # in the encoder measurements
-            sleep(0.1)
+            sleep(0.05)
 
             dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
     except KeyboardInterrupt:
@@ -172,12 +175,12 @@ if __name__ == "__main__":
 
         # Set heading
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-        print(f"Target angular displacement: {targetAngDispL:3f}°, {targetAngDispR:3f}°")
+        print(f"Target angular displacement: {targetAngDispL:.1f}°, {targetAngDispR:.1f}°")
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # Set forward
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-        print(f"Target angular displacement: {targetAngDispL:3f}°, {targetAngDispR:3f}°")
+        print(f"Target angular displacement: {targetAngDispL:.1f}°, {targetAngDispR:.1f}°")
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
     exit()
