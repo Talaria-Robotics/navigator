@@ -53,6 +53,6 @@ if __name__ == "__main__":
     while True:
       encL_val, encR_val = readShaftPositions()
       
-      print(f"Left: {encL_val}\tRight: {encR_val}")
+      print(f"Right: {encR_val}")
 
-      time.sleep(0.1)
+      time.sleep(0.25)
