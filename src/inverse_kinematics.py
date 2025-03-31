@@ -46,6 +46,15 @@ def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, f
     wheelAngle = forwardDistanceInches * 49.822 # deg/in
     return wheelAngle, wheelAngle
 
+def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
+    dTheta = currentAngle - previousAngle
+    if abs(dTheta) > 180.0:
+        if currentAngle > previousAngle:
+            dTheta = currentAngle - (360.0 + previousAngle)
+        else:
+            dTheta = currentAngle + (360.0 - previousAngle)
+    return dTheta
+
 # Transform joystick position with x and y ranging (-1,1) into robot speed [xdot, thetadot]
 def map_speeds(B):                          
     B_mapped = np.zeros(2)
