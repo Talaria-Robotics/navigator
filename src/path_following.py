@@ -9,7 +9,7 @@ from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForF
 import data_log as dl
 import numpy as np
 
-MOCK = True
+MOCK = False
 
 if not MOCK:
     from motor import drive, driveLeft, driveRight
@@ -122,13 +122,16 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     oneRev = 360.0 #2 * np.pi
 
     try:
+        print("Moving motors")
         driveLeft(0.8 * angDispSignL)
         driveRight(0.8 * angDispSignR)
         doneL, doneR = False, False
         dataEntries = []
 
+        print("Entering step loop...")
         while not (doneL and doneR):
             angleL, angleR = readShaftPositions()
+            print(f"Read {angleL} {angleR}")
             
             # Handle when angle overflows (crossing 0 deg)
             dThetaL = angleL - lastAngleL
@@ -140,6 +143,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             if dThetaR < 0:
                 dThetaR = angleR + (oneRev - lastAngleR)
             angDispR += dThetaR
+
+            print(f"Disp: {angDispL}, {angDispR}")
 
             lastAngleL, lastAngleR = angleL, angleR
 
@@ -154,6 +159,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     except KeyboardInterrupt:
         drive(0)
         print("Navi: Stopping")
+        exit()
     
     for entry in dataEntries:
         logSession.writeEntry(entry)
