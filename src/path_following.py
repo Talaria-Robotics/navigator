@@ -115,11 +115,11 @@ def follow_path(botState: RigidBodyState, path: Path,
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
+    angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
     motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
     
     doneL, doneR = False, False
     angDispL, angDispR = 0, 0
-    angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
     
     lastAngleL, lastAngleR = readShaftPositions()
     lastTargetDeltaL, lastTargetDeltaR = None, None

@@ -28,20 +28,20 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     """
     Effectively converts a body rotation to wheel rotations.
     Computes the angular displacement of the left and right wheels
-    in order to rotate a rigid body by turnAngle radians with a
+    in order to rotate a rigid body by the given degrees with a
     turning radius of 0.
-    Return value is (left, right) in radians.
+    Return value is (left, right) in degrees.
     """
-    # Constant is ratio between one body angle unit and one wheel angle unit
-    wheelAngle = bodyAngle * 10.0544
+    # Multiply by ratio between one body angle unit and one wheel angle unit
+    wheelAngle = bodyAngle * 10.0544 # deg/deg
     return -wheelAngle, wheelAngle
 
 def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, float]:
     """
     Effectively converts a body translation to wheel rotations.
     Computes the angular displacement of the left and right wheels
-    in order to drive a rigid body forwardDistance inches.
-    Return value is (left, right) in radians.
+    in order to drive a rigid body the given number of inches.
+    Return value is (left, right) in degrees.
     """
     wheelAngle = forwardDistanceInches * 49.822 # deg/in
     return wheelAngle, wheelAngle
