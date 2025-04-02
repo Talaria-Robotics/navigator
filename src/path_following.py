@@ -126,6 +126,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
         print("Moving motors")
         motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
         doneL, doneR = False, False
+        lastTargetDeltaL, lastTargetDeltaR = None, None
         dataEntries = []
 
         print("Entering step loop...")
@@ -145,16 +146,19 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             targetDeltaR = targetAngDispR - angDispR
             print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}", end="\t")
 
-            # Slow down the motors when we get close to the target
-            if not doneL:
-                motorSpeedL = scalePwmWhenClose(targetDeltaL)
-                doneL = motorSpeedL < 0.01
+
+            if lastTargetDeltaL != None and np.sign(lastTargetDeltaL) != np.sign(targetDeltaL):
+                doneL = True
+                driveLeft(0)
+            else:
                 driveLeft(motorSpeedL)
 
-            if not doneR:
-                motorSpeedR = scalePwmWhenClose(targetDeltaR)
-                doneR = motorSpeedR < 0.01
+            if  lastTargetDeltaR != None and np.sign(lastTargetDeltaR) != np.sign(targetDeltaR):
+                doneR = True
+                driveRight(0)
+            else:
                 driveRight(motorSpeedR)
+            lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
 
             print(f"PWM: {motorSpeedL:.2f} {motorSpeedR:.2f}")
 
