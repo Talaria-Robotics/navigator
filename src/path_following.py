@@ -170,24 +170,6 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     for entry in dataEntries:
         logSession.writeEntry(entry)
 
-def scalePwmWhenClose(targetDelta: float) -> float:
-    deltaSign = np.sign(targetDelta)
-    targetDelta = abs(targetDelta)
-
-    # Target is within 1/4"
-    if targetDelta <= 12.388:
-        return 0.0
-
-    pwm: float
-    if targetDelta >= 60.0:
-        pwm = 0.8
-    else:
-        pwm = 0.5
-        #pwm = 2.647e-4 * targetDelta * targetDelta \
-        #    - 6.557e-3 * targetDelta + 0.2406
-
-    return deltaSign * pwm
-
 if __name__ == "__main__":
     import os
     from orjson import dumps

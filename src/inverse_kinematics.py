@@ -97,7 +97,11 @@ if __name__ == "__main__":
     angleL, angleR = computeWheelAnglesForTurn(turnAngle)
     print(f"{turnAngle:3f}°: L{angleL:3f}°, R{angleR:3f}°")
 
-    forwardDistance = 1.0
+    forwardDistance = 12.0
+    angleL, angleR = computeWheelAnglesForForward(forwardDistance)
+    print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
+
+    forwardDistance = -12.0
     angleL, angleR = computeWheelAnglesForForward(forwardDistance)
     print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
 
