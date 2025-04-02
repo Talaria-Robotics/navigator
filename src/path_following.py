@@ -141,7 +141,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             lastAngleL, lastAngleR = angleL, angleR
 
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
-            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}", end="\t")
+            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
 
             if lastTargetDeltaL != None and np.sign(lastTargetDeltaL) != np.sign(targetDeltaL):
                 doneL = True
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     from time import sleep
 
     with dl.startLogSession(f"plain_test") as logSession:
-        correction = RigidBodyState(complex(0, 12), 0.0)
+        correction = RigidBodyState(complex(0, -12), 0.0)
 
         # Set heading
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
