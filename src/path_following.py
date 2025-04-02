@@ -96,10 +96,6 @@ def follow_path(botState: RigidBodyState, path: Path,
     for targetState in segments:
         correction = targetState - botState
 
-        # TODO: Keep track of how much the wheels rotate,
-        # as this is what allows us to compute the actual position.
-        # Closed loop control!!!
-
         # Correct heading
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
@@ -140,9 +136,13 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
             lastAngleL, lastAngleR = angleL, angleR
 
+            # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
             print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
 
+            # If the last remaining displacement has a different sign than the
+            # the current remaining displacement, then by the intermediate value theorem
+            # we must have passed zero remaining displacement
             if lastTargetDeltaL != None and np.sign(lastTargetDeltaL) != np.sign(targetDeltaL):
                 doneL = True
                 driveLeft(0)
@@ -174,21 +174,6 @@ if __name__ == "__main__":
     import os
     from orjson import dumps
     from time import sleep
-
-    with dl.startLogSession(f"plain_test") as logSession:
-        correction = RigidBodyState(complex(0, -12), 0.0)
-
-        # Set heading
-        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-        print(f"Target angular displacement: {targetAngDispL:.1f}°, {targetAngDispR:.1f}°")
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-
-        # Set forward
-        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-        print(f"Target angular displacement: {targetAngDispL:.1f}°, {targetAngDispR:.1f}°")
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-
-    exit()
 
     def sendEventDebug(event: MailRouteEvent):
         eventStr = dumps(event, default=vars)
