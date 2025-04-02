@@ -1,5 +1,5 @@
 import time
-from numpy import deg2rad
+from numpy import deg2rad, mod
 
 # Addresses (A1 pin on RIGHT pulled high)
 encL = 0x40
@@ -11,7 +11,7 @@ encoders = {
 }
 
 def setMockReading(encoderSelection: int, value: float):
-    encoders[encoderSelection] = value
+    encoders[encoderSelection] = mod(value, 360.0)
 
 def singleReading(encoderSelection) -> float:
     """Takes a single angle reading in degrees"""
