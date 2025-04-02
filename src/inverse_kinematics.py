@@ -53,7 +53,8 @@ def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
             dTheta = currentAngle - (360.0 + previousAngle)
         else:
             dTheta = currentAngle + (360.0 - previousAngle)
-    return dTheta
+    # Divide by 2, the motor-sproket gear ratio
+    return dTheta / 2.0
 
 # Transform joystick position with x and y ranging (-1,1) into robot speed [xdot, thetadot]
 def map_speeds(B):                          

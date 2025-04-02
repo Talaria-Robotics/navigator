@@ -115,37 +115,33 @@ def follow_path(botState: RigidBodyState, path: Path,
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
-    targetAngDispL, targetAngDispR = targetAngDispL, targetAngDispR
-    lastAngleL, lastAngleR = readShaftPositions()
+    motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
+    
+    doneL, doneR = False, False
     angDispL, angDispR = 0, 0
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
+    
+    lastAngleL, lastAngleR = readShaftPositions()
+    lastTargetDeltaL, lastTargetDeltaR = None, None
 
-    oneRev = 360.0 #2 * np.pi
+    dataEntries = []
 
     try:
-        print("Moving motors")
-        motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
-        doneL, doneR = False, False
-        lastTargetDeltaL, lastTargetDeltaR = None, None
-        dataEntries = []
-
         print("Entering step loop...")
         while not (doneL and doneR):
             angleL, angleR = readShaftPositions()
             
             # Handle when angle overflows (crossing 0 deg)
-            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL) / 2
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
             angDispL += dThetaL
 
-            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR) / 2
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
 
             lastAngleL, lastAngleR = angleL, angleR
 
-            targetDeltaL = targetAngDispL - angDispL
-            targetDeltaR = targetAngDispR - angDispR
+            targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
             print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}", end="\t")
-
 
             if lastTargetDeltaL != None and np.sign(lastTargetDeltaL) != np.sign(targetDeltaL):
                 doneL = True
@@ -153,14 +149,13 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             else:
                 driveLeft(motorSpeedL)
 
-            if  lastTargetDeltaR != None and np.sign(lastTargetDeltaR) != np.sign(targetDeltaR):
+            if lastTargetDeltaR != None and np.sign(lastTargetDeltaR) != np.sign(targetDeltaR):
                 doneR = True
                 driveRight(0)
             else:
                 driveRight(motorSpeedR)
-            lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
 
-            print(f"PWM: {motorSpeedL:.2f} {motorSpeedR:.2f}")
+            lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
 
             # Ensure the delta theta is greater than the error
             # in the encoder measurements
