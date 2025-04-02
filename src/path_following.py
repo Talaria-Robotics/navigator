@@ -124,8 +124,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
     try:
         print("Moving motors")
-        driveLeft(0.8 * angDispSignL)
-        driveRight(0.8 * angDispSignR)
+        motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
         doneL, doneR = False, False
         dataEntries = []
 
@@ -142,15 +141,22 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
             lastAngleL, lastAngleR = angleL, angleR
 
-            targetDeltaL = abs(angDispL - targetAngDispL)
-            targetDeltaR = abs(angDispR - targetAngDispR)
-            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
-            if targetDeltaL < 10.0:
-                doneL = True
-                driveLeft(0)
-            if targetDeltaR < 10.0:
-                doneR = True
-                driveRight(0)
+            targetDeltaL = targetAngDispL - angDispL
+            targetDeltaR = targetAngDispR - angDispR
+            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}", end="\t")
+
+            # Slow down the motors when we get close to the target
+            if not doneL:
+                motorSpeedL = scalePwmWhenClose(targetDeltaL)
+                doneL = motorSpeedL < 0.01
+                driveLeft(motorSpeedL)
+
+            if not doneR:
+                motorSpeedR = scalePwmWhenClose(targetDeltaR)
+                doneR = motorSpeedR < 0.01
+                driveRight(motorSpeedR)
+
+            print(f"PWM: {motorSpeedL:.2f} {motorSpeedR:.2f}")
 
             # Ensure the delta theta is greater than the error
             # in the encoder measurements
@@ -165,13 +171,31 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     for entry in dataEntries:
         logSession.writeEntry(entry)
 
+def scalePwmWhenClose(targetDelta: float) -> float:
+    deltaSign = np.sign(targetDelta)
+    targetDelta = abs(targetDelta)
+
+    # Target is within 1/4"
+    if targetDelta <= 12.388:
+        return 0.0
+
+    pwm: float
+    if targetDelta >= 60.0:
+        pwm = 0.8
+    else:
+        pwm = 0.5
+        #pwm = 2.647e-4 * targetDelta * targetDelta \
+        #    - 6.557e-3 * targetDelta + 0.2406
+
+    return deltaSign * pwm
+
 if __name__ == "__main__":
     import os
     from orjson import dumps
     from time import sleep
 
     with dl.startLogSession(f"plain_test") as logSession:
-        correction = RigidBodyState(complex(0, 12), 90.0)
+        correction = RigidBodyState(complex(0, 12), 0.0)
 
         # Set heading
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
