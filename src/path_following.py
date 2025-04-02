@@ -8,6 +8,7 @@ from nav_utils import RigidBodyState, discretizePath
 from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 import numpy as np
+from time import sleep
 
 MOCK = False
 
@@ -114,7 +115,7 @@ def follow_path(botState: RigidBodyState, path: Path,
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
-    targetAngDispL, targetAngDispR = np.rad2deg(targetAngDispL), np.rad2deg(targetAngDispR)
+    targetAngDispL, targetAngDispR = targetAngDispL, targetAngDispR
     lastAngleL, lastAngleR = readShaftPositions()
     angDispL, angDispR = 0, 0
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
@@ -123,33 +124,47 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
     try:
         print("Moving motors")
-        driveLeft(0.8 * angDispSignL)
-        driveRight(0.8 * angDispSignR)
+        motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
         doneL, doneR = False, False
+        lastTargetDeltaL, lastTargetDeltaR = None, None
         dataEntries = []
 
         print("Entering step loop...")
         while not (doneL and doneR):
             angleL, angleR = readShaftPositions()
-            print(f"Read {angleL} {angleR}")
             
             # Handle when angle overflows (crossing 0 deg)
-            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL) / 2
             angDispL += dThetaL
 
-            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR) / 2
             angDispR += dThetaR
-
-            print(f"Disp: {angDispL}, {angDispR}")
 
             lastAngleL, lastAngleR = angleL, angleR
 
-            if angDispL >= targetAngDispL:
+            targetDeltaL = targetAngDispL - angDispL
+            targetDeltaR = targetAngDispR - angDispR
+            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}", end="\t")
+
+
+            if lastTargetDeltaL != None and np.sign(lastTargetDeltaL) != np.sign(targetDeltaL):
                 doneL = True
                 driveLeft(0)
-            if angDispR >= targetAngDispR:
+            else:
+                driveLeft(motorSpeedL)
+
+            if  lastTargetDeltaR != None and np.sign(lastTargetDeltaR) != np.sign(targetDeltaR):
                 doneR = True
                 driveRight(0)
+            else:
+                driveRight(motorSpeedR)
+            lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
+
+            print(f"PWM: {motorSpeedL:.2f} {motorSpeedR:.2f}")
+
+            # Ensure the delta theta is greater than the error
+            # in the encoder measurements
+            sleep(0.05)
 
             dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
     except KeyboardInterrupt:
@@ -160,22 +175,40 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     for entry in dataEntries:
         logSession.writeEntry(entry)
 
+def scalePwmWhenClose(targetDelta: float) -> float:
+    deltaSign = np.sign(targetDelta)
+    targetDelta = abs(targetDelta)
+
+    # Target is within 1/4"
+    if targetDelta <= 12.388:
+        return 0.0
+
+    pwm: float
+    if targetDelta >= 60.0:
+        pwm = 0.8
+    else:
+        pwm = 0.5
+        #pwm = 2.647e-4 * targetDelta * targetDelta \
+        #    - 6.557e-3 * targetDelta + 0.2406
+
+    return deltaSign * pwm
+
 if __name__ == "__main__":
     import os
     from orjson import dumps
     from time import sleep
 
     with dl.startLogSession(f"plain_test") as logSession:
-        correction = RigidBodyState(complex(0, 12), 90.0)
+        correction = RigidBodyState(complex(0, 12), 0.0)
 
         # Set heading
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-        print(f"Target angular displacement: {targetAngDispL:3f}°, {targetAngDispR:3f}°")
+        print(f"Target angular displacement: {targetAngDispL:.1f}°, {targetAngDispR:.1f}°")
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # Set forward
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-        print(f"Target angular displacement: {targetAngDispL:3f}°, {targetAngDispR:3f}°")
+        print(f"Target angular displacement: {targetAngDispL:.1f}°, {targetAngDispR:.1f}°")
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
     exit()
