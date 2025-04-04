@@ -17,7 +17,7 @@ class RigidBodyState:
         self.dir = dir
 
     def __str__(self) -> str:
-        return f"{self.pos.real:3f}\", {self.pos.imag:3f}\", {np.rad2deg(self.dir):3f}°"
+        return f"{self.pos.real:.2f}\", {self.pos.imag:.2f}\", {np.rad2deg(self.dir):.1f}°"
     
     def __add__(self, other):
         pos = self.pos + other.pos
