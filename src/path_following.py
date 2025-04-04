@@ -141,27 +141,23 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
 
-            lastAngleL, lastAngleR = angleL, angleR
-
             # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
             print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
 
-            # If the last remaining displacement has a different sign than the
-            # the current remaining displacement, then by the intermediate value theorem
-            # we must have passed zero remaining displacement
-            if lastTargetDeltaL != None and np.sign(lastTargetDeltaL) != np.sign(targetDeltaL):
+            if isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01):
                 doneL = True
                 driveLeft(0)
             else:
                 driveLeft(motorSpeedL)
 
-            if lastTargetDeltaR != None and np.sign(lastTargetDeltaR) != np.sign(targetDeltaR):
+            if isTargetReached(lastTargetDeltaR, targetDeltaR, 0.01):
                 doneR = True
                 driveRight(0)
             else:
                 driveRight(motorSpeedR)
 
+            lastAngleL, lastAngleR = angleL, angleR
             lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
 
             # Ensure the delta theta is greater than the error
@@ -176,6 +172,19 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     
     for entry in dataEntries:
         logSession.writeEntry(entry)
+
+def isTargetReached(previous: float | None, current: float, tolerance: float) -> bool:
+    # If we're already within the specified tolerance, we're golden
+    if current <= tolerance:
+        return True
+    
+    # If the previous delta has a different sign than the current
+    # delta, then by the intermediate value theorem we must have
+    # passed zero delta
+    if previous is not None:
+        return np.sign(previous) != np.sign(current)
+    
+    return False
 
 if __name__ == "__main__":
     import os
