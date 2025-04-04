@@ -92,26 +92,19 @@ def follow_path(botState: RigidBodyState, path: Path,
     # Configure data logging
     logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
 
-    # Use t-value to get position and orientation
-    targetLocation = path.point(1.0)
-    targetHeading = np.angle(targetLocation, deg=True)
+    segments = discretizePath(path)
+    for targetState in segments:
+        correction = targetState - botState
 
-    # Note that the heading is in degrees, relative to +x
-    targetState = RigidBodyState()
-    targetState.pos = targetLocation
-    targetState.dir = targetHeading
-    
-    correction = targetState - botState
+        # Correct heading
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-    # Correct heading
-    targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
-    driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        # Correct forward
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-    # Correct forward
-    targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
-    driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-
-    botState += correction
+        botState += correction
 
     print(f"Navi: {botState}")
     return botState
