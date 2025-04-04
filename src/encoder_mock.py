@@ -17,6 +17,8 @@ def singleReading(encoderSelection) -> float:
     """Takes a single angle reading in degrees"""
     try:
         degreesAngle = round(encoders[encoderSelection], 1)
+    except KeyboardInterrupt:
+        raise
     except:
         print("Encoder reading failed.")
         degreesAngle = 0
@@ -25,16 +27,17 @@ def singleReading(encoderSelection) -> float:
 def readShaftPositions() -> tuple[float, float]:
     """Take readings from both encoders"""
     try:
-        # Left side needs to be inverted
-        rawAngle = singleReading(encL)
-        angleL = 360.0 - rawAngle
-        angleL = round(angleL, 1)
+        angleL = singleReading(encL)
+    except KeyboardInterrupt:
+        raise
     except:
         print('Warning(I2C): Could not read left encoder')
         angleL = 0
     
     try:
         angleR = singleReading(encR)
+    except KeyboardInterrupt:
+        raise
     except:
         print('Warning(I2C): Could not read right encoder')
         angleR = 0

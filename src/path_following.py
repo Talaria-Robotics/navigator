@@ -168,7 +168,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     except KeyboardInterrupt:
         drive(0)
         print("Navi: Stopping")
-        exit()
+        raise
     
     for entry in dataEntries:
         logSession.writeEntry(entry)

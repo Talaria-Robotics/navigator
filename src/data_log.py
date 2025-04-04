@@ -57,11 +57,8 @@ class DataLogSession:
             self.resource = None
             
         self._startedTimestamp = None
-
-        # Handle exceptions if any
-        if exc_type:
-            print(f"An exception occurred: {exc_value}")
-        return True  # Suppress the exception
+        
+        return exc_type != None
 
 def startLogSession(name: str, includeTime: bool = True, logDir: str = "logs") -> DataLogSession:
     filePath = os.path.join(logDir, f"{name}.csv")
