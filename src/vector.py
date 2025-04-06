@@ -8,12 +8,6 @@ import numpy as np
 # from numpy import exp, abs, angle
 import time
 
-# Import internal programs
-import lidar
-
-np.set_printoptions(precision=3)                    # after math operations, don't print long values
-
-
 def getValid(scan):                                 # remove the rows which have invalid distances
     dist = scan[:, 0]                               # store just first column
     angles = scan[:, 1]                             # store just 2nd column
@@ -51,13 +45,6 @@ def rotate(vec, theta):                             # describe a vector in globa
 def sumVec(vec, loc):                               # add two vectors. (origin to robot, robot to obstacle)
     mySum = vec + loc                               # element-wise addition takes place
     return mySum                                    # return [x,y]
-
-
-def getNearest():                                   # combine multiple functions into one.  Call to get nearest obstacle.
-    scan = lidar.polarScan()                        # get a reading in meters and degrees
-    valids = getValid(scan)                         # remove the bad readings
-    vec = nearest(valids)                           # find the nearest
-    return vec                                      # pass the closest valid vector [m, deg]
 
 
 if __name__ == "__main__":

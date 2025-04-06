@@ -1,6 +1,7 @@
 from threading import Thread
 from rplidar import RPLidar
 from sys import float_info
+from vector import getValid, nearest
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar = RPLidar(PORT_NAME)
@@ -43,6 +44,13 @@ def disconnect():
     lidar.stop_motor()
     lidar.stop()
     lidar.disconnect()
+
+
+def getNearest():                                   # combine multiple functions into one.  Call to get nearest obstacle.
+    scan = lidar.polarScan()                        # get a reading in meters and degrees
+    valids = getValid(scan)                         # remove the bad readings
+    vec = nearest(valids)                           # find the nearest
+    return vec                                      # pass the closest valid vector [m, deg]
 
 
 if __name__ == "__main__":
