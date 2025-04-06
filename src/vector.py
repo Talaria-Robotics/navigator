@@ -34,6 +34,11 @@ def polar2cart(r, alpha):                           # convert an individual vect
     cart = np.round(np.array([x, y]), 3)            # vectorize and round
     return cart
 
+def cart2polar(p: complex) -> np.ndarray:
+    alpha = np.angle(p, deg=True)
+    r = abs(p)
+    return np.array((r, alpha))
+
 
 def rotate(vec, theta):                             # describe a vector in global coordinates by rotating from body-fixed frame
     c, s = np.cos(theta), np.sin(theta)             # define cosines & sines
@@ -48,7 +53,4 @@ def sumVec(vec, loc):                               # add two vectors. (origin t
 
 
 if __name__ == "__main__":
-    while True:
-        myVector = getNearest()                                 # call the function which utilizes several functions in this program
-        print("\n The nearest object (m,deg):\n", myVector)     # print the result
-        time.sleep(0.1)                                         # small delay
+    cart2polar(complex(1, 1))
