@@ -7,6 +7,7 @@ from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
 from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
+from vector import cart2polar
 import numpy as np
 from time import sleep
 
@@ -96,17 +97,27 @@ def follow_path(botState: RigidBodyState, path: Path,
     for targetState in segments:
         correction = targetState - botState
 
-        # Correct heading
-        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(correction.dir)
+        # Correct position in local polar space
+        targetDistance, targetStartAngle = cart2polar(correction.pos)
+        print(f"Correction: {targetDistance:.2f}\", {targetStartAngle:.1f}°")
+
+        # Correct start heading angle
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(targetStartAngle)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-        # Correct forward
-        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(abs(correction.pos))
+        # Correct forward distance
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetDistance)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-        botState += correction
+        # TODO: Correct end heading angle
+        #targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - targetStartAngle)
+        #driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-    print(f"Navi: {botState}")
+        # TODO: Verify this
+        botState.pos += correction.pos
+        botState.dir = targetStartAngle
+
+    print(f"Bot state: {botState}")
     return botState
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
