@@ -129,7 +129,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     angDispL, angDispR = 0, 0
     
     lastAngleL, lastAngleR = readShaftPositions()
-    lastTargetDeltaL, lastTargetDeltaR = None, None
+    lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
 
     dataEntries = []
 
@@ -177,16 +177,16 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     for entry in dataEntries:
         logSession.writeEntry(entry)
 
-def isTargetReached(previous: float | None, current: float, tolerance: float) -> bool:
+def isTargetReached(previous: float, current: float, tolerance: float) -> bool:
     # If we're already within the specified tolerance, we're golden
-    if current <= tolerance:
+    if np.abs(current) <= tolerance:
         return True
     
     # If the previous delta has a different sign than the current
     # delta, then by the intermediate value theorem we must have
     # passed zero delta
-    if previous is not None:
-        return np.sign(previous) != np.sign(current)
+    if not np.isnan(previous):
+        return bool(np.sign(previous) != np.sign(current))
     
     return False
 
