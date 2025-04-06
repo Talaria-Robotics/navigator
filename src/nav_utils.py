@@ -10,24 +10,28 @@ class RigidBodyState:
     """The position of the body's center of mass."""
 
     dir: float = 0.0
-    """The heading angle in radians relative to the forward direction of the body."""
+    """The heading angle in degrees relative to the forward direction of the body."""
 
     def __init__(self, pos: complex = complex(0), dir: float = 0.0):
         self.pos = pos
         self.dir = dir
 
     def __str__(self) -> str:
-        return f"{self.pos.real:.2f}\", {self.pos.imag:.2f}\", {np.rad2deg(self.dir):.1f}°"
+        return f"{self.pos.real:.2f}\", {self.pos.imag:.2f}\", {self.dir:.1f}°"
     
     def __add__(self, other):
         pos = self.pos + other.pos
-        dir = self.dir + other.dir
-        return RigidBodyState(pos, np.fmod(dir, 2 * np.pi))
+        dir = self._addDir(other.dir)
+        return RigidBodyState(pos, dir)
     
     def __sub__(self, other):
         pos = self.pos - other.pos
-        dir = self.dir - other.dir
-        return RigidBodyState(pos, np.fmod(dir, 2 * np.pi))
+        dir = self._addDir(-other.dir)
+        return RigidBodyState(pos, dir)
+    
+    def _addDir(self, otherDir: float):
+        dir = self.dir + otherDir
+        return np.fmod(dir, 360.0)
 
 
 def bboxCombine(bboxes: list[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
@@ -72,9 +76,19 @@ def _closestPointOnPath(path: Path, point: complex, step: float) -> Tuple[float,
         
     return closest
 
-def discretizePath(path: Path) -> Generator[RigidBodyState]:
+def discretizePath(path: Path) -> list[RigidBodyState]:
+    # Preston doesn't need hundredth-of-an-inch accuracy,
+    # so any two points with a change in heading of less than
+    # 0.04774 degrees is assumed to be a straight line.
+    # This value was computed as the maximum angle that
+    # produces less than 1/100" across a distance of 10 feet.
+    MERGE_TOLERANCE_DEG = 0.04774
+
     # Determine delta t to achieve segments of <1 inch
     dt = path.ilength(1.0)
+
+    points: list[RigidBodyState] = []
+    lastHeading: float = None
 
     for t in np.arange(0.0, 1.0 + dt, dt):
         if t > 1.0:
@@ -83,11 +97,39 @@ def discretizePath(path: Path) -> Generator[RigidBodyState]:
         # Use t-value to get position and orientation
         baseVec = path.point(t)
         tangentVec = path.unit_tangent(t)
-        heading = np.angle(tangentVec)
 
-        # Note that the heading is in radians, relative to +x
+        # Note that the heading is in degrees, relative to +x
+        heading = np.angle(tangentVec, deg=True)
         
         state = RigidBodyState()
         state.pos = baseVec
         state.dir = heading
-        yield state
+
+        # For straight lines, there's no need to go a single inch
+        # at a time, so let's combine it with the previous one
+        if lastHeading != None and abs(lastHeading - heading) <= MERGE_TOLERANCE_DEG:
+            # Add current state to previous state
+            #lastState = points[-1]
+            points[-1] = state
+
+            # Make sure we don't duplicate this state or update the
+            # previous heading. This should help prevent long, gentle
+            # curves from being optimized to straight lines
+            continue
+
+        points.append(state)
+        lastHeading = heading
+    
+    return points
+
+if __name__ == "__main__":
+    from svgpathtools import parse_path
+
+    path = parse_path("M -42 66 h 24 v -36 L 48 30")
+
+    robotState = RigidBodyState(complex(-42, 66), 0)
+
+    for point in discretizePath(path):
+        correction = point - robotState
+        robotState += correction
+        print(correction)
