@@ -129,7 +129,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     angDispL, angDispR = 0, 0
     
     lastAngleL, lastAngleR = readShaftPositions()
-    lastTargetDeltaL, lastTargetDeltaR = None, None
+    lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
 
     dataEntries = []
 
@@ -144,22 +144,21 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
             dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
+            #print(f"Delta Theta: {dThetaL:.1f} {dThetaR:.1f}")
 
             # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
-            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
+            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
 
             if isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01):
                 doneL = True
-                driveLeft(0)
-            else:
-                driveLeft(motorSpeedL)
+                motorSpeedL = 0.0
+            driveRight(motorSpeedL)
 
             if isTargetReached(lastTargetDeltaR, targetDeltaR, 0.01):
                 doneR = True
-                driveRight(0)
-            else:
-                driveRight(motorSpeedR)
+                motorSpeedR = 0.0
+            driveLeft(motorSpeedR)
 
             lastAngleL, lastAngleR = angleL, angleR
             lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
@@ -173,20 +172,20 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
         drive(0)
         print("Navi: Stopping")
         raise
-    
-    for entry in dataEntries:
-        logSession.writeEntry(entry)
+    if logSession is not None:
+        for entry in dataEntries:
+            logSession.writeEntry(entry)
 
-def isTargetReached(previous: float | None, current: float, tolerance: float) -> bool:
+def isTargetReached(previous: float, current: float, tolerance: float) -> bool:
     # If we're already within the specified tolerance, we're golden
-    if current <= tolerance:
+    if np.abs(current) <= tolerance:
         return True
     
     # If the previous delta has a different sign than the current
     # delta, then by the intermediate value theorem we must have
     # passed zero delta
-    if previous is not None:
-        return np.sign(previous) != np.sign(current)
+    if not np.isnan(previous):
+        return bool(np.sign(previous) != np.sign(current))
     
     return False
 
