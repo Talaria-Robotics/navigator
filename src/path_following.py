@@ -144,22 +144,21 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
             dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
+            #print(f"Delta Theta: {dThetaL:.1f} {dThetaR:.1f}")
 
             # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
-            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}")
+            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
 
             if isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01):
                 doneL = True
-                driveLeft(0)
-            else:
-                driveLeft(motorSpeedL)
+                motorSpeedL = 0.0
+            driveRight(motorSpeedL)
 
             if isTargetReached(lastTargetDeltaR, targetDeltaR, 0.01):
                 doneR = True
-                driveRight(0)
-            else:
-                driveRight(motorSpeedR)
+                motorSpeedR = 0.0
+            driveLeft(motorSpeedR)
 
             lastAngleL, lastAngleR = angleL, angleR
             lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
@@ -173,9 +172,9 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
         drive(0)
         print("Navi: Stopping")
         raise
-    
-    for entry in dataEntries:
-        logSession.writeEntry(entry)
+    if logSession is not None:
+        for entry in dataEntries:
+            logSession.writeEntry(entry)
 
 def isTargetReached(previous: float, current: float, tolerance: float) -> bool:
     # If we're already within the specified tolerance, we're golden
