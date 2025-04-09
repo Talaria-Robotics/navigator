@@ -142,16 +142,6 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     try:
         print("Entering step loop...")
         while not (doneL and doneR):
-            angleL, angleR = readShaftPositions()
-            
-            # Handle when angle overflows (crossing 0 deg)
-            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
-            angDispL += dThetaL
-
-            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
-            angDispR += dThetaR
-            #print(f"Delta Theta: {dThetaL:.1f} {dThetaR:.1f}")
-
             # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
             print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
@@ -165,6 +155,19 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                 doneR = True
                 motorSpeedR = 0.0
             driveLeft(motorSpeedR)
+
+            if doneL and doneR:
+                break
+
+            angleL, angleR = readShaftPositions()
+            
+            # Handle when angle overflows (crossing 0 deg)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+            angDispL += dThetaL
+
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+            angDispR += dThetaR
+            #print(f"Delta Theta: {dThetaL:.1f} {dThetaR:.1f}")
 
             lastAngleL, lastAngleR = angleL, angleR
             lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
