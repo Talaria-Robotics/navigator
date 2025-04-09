@@ -32,9 +32,15 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     turning radius of 0.
     Return value is (left, right) in degrees.
     """
+    # The exact ratio depends on whether the motor is
+    # spinning in its forward or backward direction
+    RATIO_F, RATIO_B = (4,269.9 / 360.0), (4042.075 / 360.0)
+
     # Multiply by ratio between one body angle unit and one wheel angle unit
-    wheelAngle = bodyAngle * 10.0544 # deg/deg
-    return -wheelAngle, wheelAngle
+    if bodyAngle >= 0:
+        return -bodyAngle * RATIO_B, bodyAngle * RATIO_F
+    else:
+        return -bodyAngle * RATIO_F, bodyAngle * RATIO_B
 
 def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, float]:
     """
