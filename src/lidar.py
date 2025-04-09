@@ -47,8 +47,8 @@ def cleanScan() -> Generator[float]:
 
 def getNearest() -> tuple[float, float]:
     data = cleanScan()
-    nearest = min(enumerate(data), key=itemgetter(1))
-    return nearest
+    angle, dist = min(enumerate(data), key=itemgetter(1))
+    return dist, angle
     
 def init():
     # The A1 LIDAR really doesn't like one-shot measurements,
