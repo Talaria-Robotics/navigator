@@ -2,11 +2,9 @@ from inverse_kinematics import computeWheelAnglesForForward, computeDeltaThetaDe
 from path_following import isTargetReached
 from encoder import readShaftPositions
 from motor import driveLeft, driveRight, drive
-from lidar import getNearest
+from lidar import getNearest, init, disconnect
 from time import sleep
 import numpy as np
-
-from vector import polar2cart
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float):
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
@@ -22,6 +20,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float):
     
     lastAngleL, lastAngleR = readShaftPositions()
     lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
+
+    init()
 
     try:
         print("Entering step loop...")
@@ -72,6 +72,9 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float):
         drive(0)
         print("Navi: Stopping")
         raise
+    finally:
+        disconnect()
+
 
 if __name__ == "__main__":
     maxAngularDisplacement, _ = computeWheelAnglesForForward(2 * 12)
