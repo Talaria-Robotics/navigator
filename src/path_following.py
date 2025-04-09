@@ -134,6 +134,8 @@ def trackDisplacement(angDispSignL, angDispSignR):
 
     try:
         print("Entering step loop...")
+        driveRight(motorSpeedL)
+        driveLeft(motorSpeedR)
         while True:
             angleL, angleR = readShaftPositions()
             
