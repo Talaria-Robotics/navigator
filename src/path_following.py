@@ -133,7 +133,7 @@ def trackDisplacement(angDispSignL, angDispSignR):
     lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
 
     try:
-        #print("Entering step loop...")
+        print("Entering step loop...")
         driveRight(motorSpeedL)
         driveLeft(motorSpeedR)
         while True:
@@ -146,7 +146,7 @@ def trackDisplacement(angDispSignL, angDispSignR):
             dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
             
-            #print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
+            print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
 
             lastAngleL, lastAngleR = angleL, angleR
 
@@ -177,11 +177,11 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     dataEntries = []
 
     try:
-        print("Entering step loop...")
+        #print("Entering step loop...")
         while not (doneL and doneR):
             # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
-            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
+            #print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
 
             if isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01):
                 doneL = True
