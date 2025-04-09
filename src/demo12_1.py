@@ -7,9 +7,6 @@ if __name__ == "__main__":
 
     robotState = RigidBodyState(complex(0, 0), 0)
 
-    trackDisplacement(-1, 1)
-    exit()
-
     follow_path(robotState, path, None)
 
     print("Path done!")

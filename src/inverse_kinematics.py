@@ -38,9 +38,9 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
 
     # Multiply by ratio between one body angle unit and one wheel angle unit
     if bodyAngle >= 0:
-        return -bodyAngle * RATIO_B, bodyAngle * RATIO_F
+        return (-bodyAngle * RATIO_B), (bodyAngle * RATIO_F)
     else:
-        return -bodyAngle * RATIO_F, bodyAngle * RATIO_B
+        return (-bodyAngle * RATIO_F), (bodyAngle * RATIO_B)
 
 def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, float]:
     """
