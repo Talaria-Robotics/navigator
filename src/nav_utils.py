@@ -82,13 +82,14 @@ def discretizePath(path: Path) -> list[RigidBodyState]:
     # 0.04774 degrees is assumed to be a straight line.
     # This value was computed as the maximum angle that
     # produces less than 1/100" across a distance of 10 feet.
-    MERGE_TOLERANCE_DEG = 0.04774
+    MERGE_TOLERANCE_DIR = 0.04774
+    MERGE_TOLERANCE_POS = 6
 
     # Determine delta t to achieve segments of <1 inch
     dt = path.ilength(1.0)
 
     points: list[RigidBodyState] = []
-    lastHeading: float = None
+    lastState: RigidBodyState = None
 
     for t in np.arange(0.0, 1.0 + dt, dt):
         if t > 1.0:
@@ -107,9 +108,10 @@ def discretizePath(path: Path) -> list[RigidBodyState]:
 
         # For straight lines, there's no need to go a single inch
         # at a time, so let's combine it with the previous one
-        if lastHeading != None and abs(lastHeading - heading) <= MERGE_TOLERANCE_DEG:
-            # Add current state to previous state
-            #lastState = points[-1]
+        if lastState != None \
+            and abs(lastState.dir - heading) <= MERGE_TOLERANCE_DIR \
+            and abs(lastState.pos - baseVec) <= MERGE_TOLERANCE_POS:
+            # Skip previous state
             points[-1] = state
 
             # Make sure we don't duplicate this state or update the
@@ -118,16 +120,16 @@ def discretizePath(path: Path) -> list[RigidBodyState]:
             continue
 
         points.append(state)
-        lastHeading = heading
+        lastState = state
     
     return points
 
 if __name__ == "__main__":
     from svgpathtools import parse_path
 
-    path = parse_path("M -42 66 h 24 v -36 L 48 30")
+    path = parse_path("M 0 0 L 24 0 L 0 0")
 
-    robotState = RigidBodyState(complex(-42, 66), 0)
+    robotState = RigidBodyState(complex(0, 0), 0)
 
     for point in discretizePath(path):
         correction = point - robotState
