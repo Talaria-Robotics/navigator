@@ -57,9 +57,8 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float):
             # Check LIDAR for obstacles
             while True:
                 nearestR, nearestAlpha = getNearest()
-                nearestVec = polar2cart(nearestR, nearestAlpha)
 
-                if np.abs(nearestVec) > 6.0:
+                if abs(nearestR) > 6.0:
                     break
 
                 # Obstacle within 6", wait!

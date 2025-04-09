@@ -27,12 +27,11 @@ def nearest(scan):                                  # find the nearest point in 
     return vec                                      # contains [r, alpha]
 
 
-def polar2cart(r, alpha):                           # convert an individual vector to cartesian coordinates (in the robot frame)
+def polar2cart(r, alpha) -> complex:                           # convert an individual vector to cartesian coordinates (in the robot frame)
     alpha = np.radians(alpha)                       # alpha*(np.pi/180) # convert to radians
     x = r * np.cos(alpha)                           # get x
     y = r * np.sin(alpha)                           # get y
-    cart = np.round(np.array([x, y]), 3)            # vectorize and round
-    return cart
+    return complex(x, y)
 
 def cart2polar(p: complex) -> np.ndarray:
     alpha = np.angle(p, deg=True)
