@@ -115,8 +115,7 @@ def follow_path(botState: RigidBodyState, path: Path,
         #driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # TODO: Verify this
-        botState.pos += correction.pos
-        botState._addDir(targetStartAngle)
+        botState = targetState
 
     print(f"Bot state: {botState}")
     return botState
