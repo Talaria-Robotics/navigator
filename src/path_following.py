@@ -91,17 +91,18 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
 def follow_path(botState: RigidBodyState, path: Path,
                 logSession: dl.DataLogSession) -> RigidBodyState:
     # Configure data logging
-    logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
+    if logSession:
+        logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
 
     segments = discretizePath(path)
     for targetState in segments:
         correction = targetState - botState
 
-        # Correct position in local polar space
+        # Convert correction to local polar space
         targetDistance, targetStartAngle = cart2polar(correction.pos)
         print(f"Correction: {targetDistance:.2f}\", {targetStartAngle:.1f}°")
 
-        # Correct start heading angle
+        # Correct initial heading angle
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(targetStartAngle)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
@@ -115,7 +116,7 @@ def follow_path(botState: RigidBodyState, path: Path,
 
         # TODO: Verify this
         botState.pos += correction.pos
-        botState.dir = targetStartAngle
+        botState._addDir(targetStartAngle)
 
     print(f"Bot state: {botState}")
     return botState
@@ -123,7 +124,12 @@ def follow_path(botState: RigidBodyState, path: Path,
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
-    motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
+
+    dutyCycle = 0.8
+    if angDispSignL != angDispSignR:
+        dutyCycle = 1.0
+
+    motorSpeedL, motorSpeedR = dutyCycle * angDispSignL, dutyCycle * angDispSignR
     
     doneL, doneR = False, False
     angDispL, angDispR = 0, 0
