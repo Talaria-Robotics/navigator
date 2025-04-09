@@ -121,6 +121,41 @@ def follow_path(botState: RigidBodyState, path: Path,
     print(f"Bot state: {botState}")
     return botState
 
+def trackDisplacement(angDispSignL, angDispSignR):
+    dutyCycle = 0.8
+    if angDispSignL != angDispSignR:
+        dutyCycle = 1.0
+
+    motorSpeedL, motorSpeedR = dutyCycle * angDispSignL, dutyCycle * angDispSignR
+    
+    angDispL, angDispR = 0, 0
+    lastAngleL, lastAngleR = readShaftPositions()
+    lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
+
+    try:
+        print("Entering step loop...")
+        while True:
+            angleL, angleR = readShaftPositions()
+            
+            # Handle when angle overflows (crossing 0 deg)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+            angDispL += dThetaL
+
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+            angDispR += dThetaR
+            
+            print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
+
+            lastAngleL, lastAngleR = angleL, angleR
+
+            # Ensure the delta theta is greater than the error
+            # in the encoder measurements
+            sleep(0.05)
+    except KeyboardInterrupt:
+        drive(0)
+        print("Navi: Stopping")
+        raise
+
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
