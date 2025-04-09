@@ -100,10 +100,11 @@ def follow_path(botState: RigidBodyState, path: Path,
 
         # Convert correction to local polar space
         targetDistance, targetStartAngle = cart2polar(correction.pos)
+        startAngleCorrection = targetStartAngle - botState.dir
 
         # Correct initial heading angle
-        print(f"Correct heading: {targetStartAngle:.1f}°")
-        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(targetStartAngle)
+        print(f"Correct heading: {startAngleCorrection:.1f}°")
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(startAngleCorrection)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # Correct forward distance
