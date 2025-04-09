@@ -100,13 +100,14 @@ def follow_path(botState: RigidBodyState, path: Path,
 
         # Convert correction to local polar space
         targetDistance, targetStartAngle = cart2polar(correction.pos)
-        print(f"Correction: {targetDistance:.2f}\", {targetStartAngle:.1f}°")
 
         # Correct initial heading angle
+        print(f"Correct heading: {targetStartAngle:.1f}°")
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(targetStartAngle)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # Correct forward distance
+        print(f"Correct forward: {targetDistance:.2f}\"")
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetDistance)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
@@ -132,7 +133,7 @@ def trackDisplacement(angDispSignL, angDispSignR):
     lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
 
     try:
-        print("Entering step loop...")
+        #print("Entering step loop...")
         driveRight(motorSpeedL)
         driveLeft(motorSpeedR)
         while True:
@@ -145,7 +146,7 @@ def trackDisplacement(angDispSignL, angDispSignR):
             dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
             angDispR += dThetaR
             
-            print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
+            #print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
 
             lastAngleL, lastAngleR = angleL, angleR
 
