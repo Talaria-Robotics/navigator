@@ -34,7 +34,7 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     """
     # The exact ratio depends on whether the motor is
     # spinning in its forward or backward direction
-    RATIO_F, RATIO_B = (4,269.9 / 360.0), (4042.075 / 360.0)
+    RATIO_F, RATIO_B = (4269.9 / 360.0), (4042.075 / 360.0)
 
     # Multiply by ratio between one body angle unit and one wheel angle unit
     if bodyAngle >= 0:
