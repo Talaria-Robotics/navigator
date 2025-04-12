@@ -78,7 +78,7 @@ def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR:
         headingChangeRad = (distanceR - distanceL) / W
         return Pose(startPose.pos, startPose.dir + np.rad2deg(headingChangeRad))
 
-    raise NotImplementedError("Generalized movements not supported")
+    raise NotImplementedError(f"Generalized movements not supported\r\n\tStart pose: {startPose}\r\n\tDisp.: {wheelAngleL:.1f}°, {wheelAngleR:.1f}°")
 
 if __name__ == "__main__":
     print("1: Compute angular displacements for target")
