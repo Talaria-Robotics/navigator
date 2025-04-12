@@ -1,28 +1,13 @@
-# inverse_kinematics.py calculates wheel speeds from chassis speeds
-# Calculations will intake motion requests in [theta, x] (rad, m)
-# and output motion requests in [phi dot Left, pi dot right] (rad/s).
-# This program runs on SCUTTLE with any CPU. 
-
-# Import external libraries
-import numpy as np                          # to perform matrix operations
-import time
+import numpy as np
 
 # define robot geometry
 # Tread height = 2 5/16"
 # Wheelbase width = 23 1/8"
 R = 1.15625                           # wheel radius
 L = 11.5625                           # half of the wheelbase
-KWB = 10.00                           # (L / R) Wheel revolutions per body revolution
-A = np.array([[1/R, -KWB], 
-              [1/R, KWB]])          # matrix A * [xd, td] = [pdl, pdr]
 
-# constants
-twoPi = 2 * np.pi
-fourPiSq = twoPi * twoPi
-
-# define constraints for x_dot and theta_dot
-max_xd = 0.4                        # maximum achievable x_dot (m/s), forward speed
-max_td = (max_xd / L)               # maximum achievable theta_dot (rad/s), rotational speed
+# Calibrated paramters
+TURN_RATIO_F, TURN_RATIO_B = (4269.9 / 360.0), (4042.075 / 360.0)
 
 def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     """
@@ -32,15 +17,14 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     turning radius of 0.
     Return value is (left, right) in degrees.
     """
-    # The exact ratio depends on whether the motor is
-    # spinning in its forward or backward direction
-    RATIO_F, RATIO_B = (4269.9 / 360.0), (4042.075 / 360.0)
+    # Multiply by ratio between one body angle unit and one wheel
+    # angle unit. The exact value of this ratio depends on whether
+    # the motor is being driven forward or backward.
 
-    # Multiply by ratio between one body angle unit and one wheel angle unit
     if bodyAngle >= 0:
-        return (-bodyAngle * RATIO_B), (bodyAngle * RATIO_F)
+        return (-bodyAngle * TURN_RATIO_B), (bodyAngle * TURN_RATIO_F)
     else:
-        return (-bodyAngle * RATIO_F), (bodyAngle * RATIO_B)
+        return (-bodyAngle * TURN_RATIO_F), (bodyAngle * TURN_RATIO_B)
 
 def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, float]:
     """
