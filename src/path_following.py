@@ -96,27 +96,26 @@ def follow_path(botState: RigidBodyState, path: Path,
 
     segments = discretizePath(path)
     for targetState in segments:
-        correction = targetState - botState
+        # Compute correction for position in polar coordinates
+        positionCorrection = targetState.pos - botState.pos
+        positionForwardCorrection, positionHeadingTarget = cart2polar(positionCorrection)
+        positionHeadingCorrection = positionHeadingTarget - botState.dir
 
-        # Convert correction to local polar space
-        targetDistance, targetStartAngle = cart2polar(correction.pos)
-        startAngleCorrection = targetStartAngle - botState.dir
-
-        # Correct initial heading angle
-        print(f"Correct heading: {startAngleCorrection:.1f}°")
-        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(startAngleCorrection)
+        # Correct heading angle for position
+        print(f"Correct heading: {positionHeadingCorrection:.1f}°")
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(positionHeadingCorrection)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
         # Correct forward distance
-        print(f"Correct forward: {targetDistance:.2f}\"")
-        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetDistance)
+        print(f"Correct forward: {positionForwardCorrection:.2f}\"")
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(positionForwardCorrection)
         driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-        # TODO: Correct end heading angle
-        #targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - targetStartAngle)
-        #driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        # Correct heading angle for final heading
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - positionHeadingTarget)
+        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
 
-        # TODO: Verify this
+        # TODO: Don't assume this
         botState = targetState
 
     print(f"Bot state: {botState}")
