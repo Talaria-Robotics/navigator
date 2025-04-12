@@ -62,42 +62,6 @@ def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
     # Divide by 2, the motor-sproket gear ratio
     return dTheta / 2.0
 
-# Transform joystick position with x and y ranging (-1,1) into robot speed [xdot, thetadot]
-def map_speeds(B):                          
-    B_mapped = np.zeros(2)
-    B_mapped[0] = max_xd*B[0]
-    B_mapped[1] = max_td*B[1]
-    return(B_mapped)
-
-# Convert desired robot speeds [xdot, thetadot] to wheel speeds [pdl, pdr]
-def getPdTargets(B):
-    C = np.matmul(A, B)             # matrix multiplication: converts [xdot, thetadot] to [pdl, pdr]
-    C = np.round(C, decimals=3)     # round the result
-    C = np.clip(C, -9.7, 9.7)       # keep it between -9.7 and +9.7, the max wheel speeds in rad/s
-    return(C)
-
-
-# create a function that can convert an obstacle into an influence on theta dot
-def phi_influence(yValue):
-    limit = 0.30                                            # meters to limit influence
-    if (yValue < limit and yValue > 0):
-        theta_influence = max_td*0.7*(limit - yValue)       # give theta push only if object is near
-    elif (yValue > -limit and yValue < 0):
-        theta_influence = -1*max_td*0.7*(limit - yValue)    # give theta push only if object is near
-    else:
-        theta_influence = 0
-    B = np.array([0, theta_influence])
-    C = np.matmul(A, B)
-    return(C)
-
-
-# this function takes user input for x_dot and theta_dot
-def wait_user():
-    x_dot = input("please enter x_dot (m/s): ")                     # takes x_dot as user input
-    theta_dot = input("please enter theta_dot (rad/s): ")             # takes theta_dot as user input
-    return (float(x_dot) , float(theta_dot))                    # returns x_dot and theta_dot
-
-
 if __name__ == "__main__":
     turnAngle = 90.0
     angleL, angleR = computeWheelAnglesForTurn(turnAngle)
