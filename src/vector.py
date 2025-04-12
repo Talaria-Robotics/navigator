@@ -33,10 +33,10 @@ def polar2cart(r, alpha) -> complex:                           # convert an indi
     y = r * np.sin(alpha)                           # get y
     return complex(x, y)
 
-def cart2polar(p: complex) -> np.ndarray:
+def cart2polar(p: complex) -> tuple[float, float]:
     alpha = np.angle(p, deg=True)
     r = abs(p)
-    return np.array((r, alpha))
+    return r, alpha
 
 
 def rotate(vec, theta):                             # describe a vector in global coordinates by rotating from body-fixed frame

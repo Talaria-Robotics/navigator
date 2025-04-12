@@ -30,8 +30,11 @@ class RigidBodyState:
         return RigidBodyState(pos, dir)
     
     def _addDir(self, otherDir: float):
-        dir = self.dir + otherDir
-        return np.fmod(dir, 360.0)
+        return addAnglesDeg(self.dir, otherDir)
+
+def addAnglesDeg(theta1: float, theta2: float) -> float:
+    theta3 = theta1 + theta2
+    return np.fmod(theta3, 360.0)
 
 
 def bboxCombine(bboxes: list[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
