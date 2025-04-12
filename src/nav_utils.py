@@ -5,7 +5,7 @@ from typing import  Tuple
 import sys
 import numpy as np
 
-class RigidBodyState:
+class Pose:
     pos: complex = complex(0)
     """The position of the body's center of mass."""
 
@@ -22,12 +22,12 @@ class RigidBodyState:
     def __add__(self, other):
         pos = self.pos + other.pos
         dir = self._addDir(other.dir)
-        return RigidBodyState(pos, dir)
+        return Pose(pos, dir)
     
     def __sub__(self, other):
         pos = self.pos - other.pos
         dir = self._addDir(-other.dir)
-        return RigidBodyState(pos, dir)
+        return Pose(pos, dir)
     
     def _addDir(self, otherDir: float):
         return addAnglesDeg(self.dir, otherDir)
@@ -79,7 +79,7 @@ def _closestPointOnPath(path: Path, point: complex, step: float) -> Tuple[float,
         
     return closest
 
-def discretizePath(path: Path) -> list[RigidBodyState]:
+def discretizePath(path: Path) -> list[Pose]:
     # Preston doesn't need hundredth-of-an-inch accuracy,
     # so any two points with a change in heading of less than
     # 0.04774 degrees is assumed to be a straight line.
@@ -91,8 +91,8 @@ def discretizePath(path: Path) -> list[RigidBodyState]:
     # Determine delta t to achieve segments of <1 inch
     dt = path.ilength(1.0)
 
-    points: list[RigidBodyState] = []
-    lastState: RigidBodyState = None
+    points: list[Pose] = []
+    lastState: Pose = None
 
     for t in np.arange(0.0, 1.0 + dt, dt):
         if t > 1.0:
@@ -105,7 +105,7 @@ def discretizePath(path: Path) -> list[RigidBodyState]:
         # Note that the heading is in degrees, relative to +x
         heading = np.angle(tangentVec, deg=True)
         
-        state = RigidBodyState()
+        state = Pose()
         state.pos = baseVec
         state.dir = heading
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     path = parse_path("M 0 0 L 24 0 L 0 0")
 
-    robotState = RigidBodyState(complex(0, 0), 0)
+    robotState = Pose(complex(0, 0), 0)
 
     for point in discretizePath(path):
         correction = point - robotState

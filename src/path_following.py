@@ -4,7 +4,7 @@ from mail_route_events import *
 from models import *
 from svgpathtools import Path
 from typing import Callable
-from nav_utils import RigidBodyState, discretizePath
+from nav_utils import Pose, discretizePath
 from odometry import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 from vector import cart2polar
@@ -40,7 +40,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         stopQueue.put(stopId)
 
     statusesSent: int = 0
-    botState = RigidBodyState()
+    botState = Pose()
     nextStopId: str | None = stopQueue.get()
     
     for nextNodeIndex in range(1, len(tripNodes)):
@@ -85,8 +85,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
         botState = follow_path(botState, pathToFollow, None)
 
-def follow_path(botState: RigidBodyState, path: Path,
-                logSession: dl.DataLogSession) -> RigidBodyState:
+def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Pose:
     # Configure data logging
     if logSession:
         logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
