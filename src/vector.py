@@ -27,7 +27,7 @@ def nearest(scan):                                  # find the nearest point in 
     return vec                                      # contains [r, alpha]
 
 
-def polar2cart(r, alpha) -> complex:                           # convert an individual vector to cartesian coordinates (in the robot frame)
+def polar2cart(r, alpha) -> complex:                # convert an individual vector to cartesian coordinates (in the robot frame)
     alpha = np.radians(alpha)                       # alpha*(np.pi/180) # convert to radians
     x = r * np.cos(alpha)                           # get x
     y = r * np.sin(alpha)                           # get y
@@ -39,9 +39,12 @@ def cart2polar(p: complex) -> tuple[float, float]:
     return r, alpha
 
 
+def rotationMatrix(theta):
+    c, s = np.cos(theta), np.sin(theta)
+    return np.array(((c, -s), (s, c)))
+
 def rotate(vec, theta):                             # describe a vector in global coordinates by rotating from body-fixed frame
-    c, s = np.cos(theta), np.sin(theta)             # define cosines & sines
-    R = np.array(((c, -s), (s, c)))                 # generate a rotation matrix
+    R = rotationMatrix(theta)
     vecGlobal = np.matmul(R, vec)                   # multiply the two matrices
     return vecGlobal
 

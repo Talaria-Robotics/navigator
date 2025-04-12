@@ -4,8 +4,8 @@ from mail_route_events import *
 from models import *
 from svgpathtools import Path
 from typing import Callable
-from nav_utils import Pose, discretizePath
-from odometry import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
+from nav_utils import Pose, discretizePath, normalizeHeading
+from odometry import computePoseFromWheelAngles, computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 from vector import cart2polar
 import numpy as np
@@ -99,26 +99,25 @@ def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Po
         
         # If the magnitude of the angle is greater than 180°,
         # just turn the opposite direction
-        positionHeadingDistance = abs(positionHeadingCorrection)
-        if positionHeadingDistance > 180.0:
-            positionHeadingCorrection = -np.sign(positionHeadingCorrection) * (360.0 - positionHeadingDistance)
+        positionHeadingCorrection = normalizeHeading(positionHeadingCorrection)
 
         # Correct heading angle for position
-        print(f"Correct heading: {positionHeadingCorrection:.1f}°")
+        print(f"Correct forward heading: {positionHeadingCorrection:.1f}°")
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(positionHeadingCorrection)
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        botState = computePoseFromWheelAngles(actualAngDispL, actualAngDispR)
 
         # Correct forward distance
-        print(f"Correct forward: {positionForwardCorrection:.2f}\"")
+        print(f"Correct forward distance: {positionForwardCorrection:.2f}\"")
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(positionForwardCorrection)
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        botState = computePoseFromWheelAngles(actualAngDispL, actualAngDispR)
 
         # Correct heading angle for final heading
+        print(f"Correct final heading: {positionHeadingCorrection:.1f}°")
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - positionHeadingTarget)
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-
-        # TODO: Don't assume this
-        botState = targetState
+        actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        botState = computePoseFromWheelAngles(actualAngDispL, actualAngDispR)
 
     print(f"Bot state: {botState}")
     return botState
@@ -223,6 +222,9 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     if logSession is not None:
         for entry in dataEntries:
             logSession.writeEntry(entry)
+    
+    # Return the actual angular displacement for future calculations
+    return angDispL, angDispR
 
 def isTargetReached(previous: float, current: float, tolerance: float) -> bool:
     # If we're already within the specified tolerance, we're golden

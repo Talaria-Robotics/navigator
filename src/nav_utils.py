@@ -36,6 +36,12 @@ def addAnglesDeg(theta1: float, theta2: float) -> float:
     theta3 = theta1 + theta2
     return np.fmod(theta3, 360.0)
 
+def normalizeHeading(dir: float) -> float:
+    dir = np.fmod(dir, 360.0)
+    absDir = abs(dir)
+    if absDir > 180.0:
+        return -np.sign(dir) * (360.0 - absDir)
+    return dir
 
 def bboxCombine(bboxes: list[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
     xmin, xmax, ymin, ymax = sys.float_info.max, sys.float_info.min, sys.float_info.max, sys.float_info.min

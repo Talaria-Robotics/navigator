@@ -1,13 +1,20 @@
 import numpy as np
 
+from nav_utils import Pose, normalizeHeading
+from vector import polar2cart, rotationMatrix
+
 # define robot geometry
 # Tread height = 2 5/16"
 # Wheelbase width = 23 1/8"
 R = 1.15625                           # wheel radius
 L = 11.5625                           # half of the wheelbase
 
-# Calibrated paramters
-TURN_RATIO_F, TURN_RATIO_B = (4269.9 / 360.0), (4042.075 / 360.0)
+# Calibrated parameters
+REVERSE_MULT = 4269.9 / 4042.075      # motors need a bit more when driving backwards
+TURN_RATIO_F = 4042.075 / 360.0       # wheel_deg / body_deg
+TURN_RATIO_B = 4269.900 / 360.0   
+ANGLE_DISTANCE_RATIO = 49.822         # deg/in
+DISTANCE_ANGLE_RATIO = 1 / ANGLE_DISTANCE_RATIO         # in/deg
 
 def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     """
@@ -33,7 +40,9 @@ def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, f
     in order to drive a rigid body the given number of inches.
     Return value is (left, right) in degrees.
     """
-    wheelAngle = forwardDistanceInches * 49.822 # deg/in
+    wheelAngle = forwardDistanceInches * ANGLE_DISTANCE_RATIO
+    if wheelAngle < 0:
+        wheelAngle *= REVERSE_MULT
     return wheelAngle, wheelAngle
 
 def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
@@ -46,16 +55,68 @@ def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
     # Divide by 2, the motor-sproket gear ratio
     return dTheta / 2.0
 
+def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR: float):
+    x = startPose.pos.real
+    y = startPose.pos.imag
+    pos = np.array((x, y)).reshape(-1, 1)
+
+    distanceL, distanceR = wheelAngleL * DISTANCE_ANGLE_RATIO, wheelAngleR * DISTANCE_ANGLE_RATIO
+    if distanceL < 0:
+        distanceL /= REVERSE_MULT
+    if distanceR < 0:
+        distanceR /= REVERSE_MULT
+
+    # Check for pure forward, otherwise we have to divide by zero
+    if distanceL == distanceR:
+        posDelta = polar2cart(distanceL, startPose.dir)
+        return Pose(startPose.pos + posDelta, startPose.dir)
+
+    W = 2.0 * L
+    theta = np.deg2rad(startPose.dir)
+    headingChange = (distanceR - distanceL) / W
+
+    # The path can be modelled as a rotation around some center point.
+    # The instantaneous center of curvature (ICC) is the origin of the circle
+    # the robot appears to travel along.
+    turningRadius = L * (distanceL + distanceR) / (distanceR - distanceL)
+    ICCx = x - turningRadius * np.sin(theta)
+    ICCy = y + turningRadius * np.cos(theta)
+    ICC = np.array((ICCx, ICCy)).reshape(-1, 1)
+
+    # Perform rotation with offset
+    rotation = rotationMatrix(headingChange)
+    posFromICC = pos - ICC
+    newPos = np.matmul(rotation, posFromICC) + ICC
+
+    newX, newY = newPos[0].item(), newPos[1].item()
+    newHeading = normalizeHeading(theta + np.rad2deg(headingChange))
+
+    return Pose(complex(newX, newY), newHeading)
+
 if __name__ == "__main__":
-    turnAngle = 90.0
-    angleL, angleR = computeWheelAnglesForTurn(turnAngle)
-    print(f"{turnAngle:3f}°: L{angleL:3f}°, R{angleR:3f}°")
+    print("1: Compute angular displacements for target")
+    print("2: Update pose from angular displacements")
+    selection = input("? ")
 
-    forwardDistance = 12.0
-    angleL, angleR = computeWheelAnglesForForward(forwardDistance)
-    print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
+    if selection == "1":
+        turnAngle = 90.0
+        angleL, angleR = computeWheelAnglesForTurn(turnAngle)
+        print(f"{turnAngle:3f}°: L{angleL:3f}°, R{angleR:3f}°")
 
-    forwardDistance = -12.0
-    angleL, angleR = computeWheelAnglesForForward(forwardDistance)
-    print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
+        forwardDistance = 12.0
+        angleL, angleR = computeWheelAnglesForForward(forwardDistance)
+        print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
 
+        forwardDistance = -12.0
+        angleL, angleR = computeWheelAnglesForForward(forwardDistance)
+        print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
+    elif selection == "2":
+        forwardDistance = 12.0
+        angleL, angleR = computeWheelAnglesForForward(forwardDistance)
+        newPose = computePoseFromWheelAngles(Pose(), angleL, angleR)
+        print(newPose)
+
+        turnAngle = 90.0
+        angleL, angleR = computeWheelAnglesForTurn(turnAngle)
+        newPose = computePoseFromWheelAngles(Pose(), angleL, angleR)
+        print(newPose)
