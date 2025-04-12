@@ -57,12 +57,12 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float):
             # Check LIDAR for obstacles
             while True:
                 nearestR, nearestAlpha = getNearest()
-
-                if abs(nearestR) > 6.0:
+                nearestDist = abs(nearestR)
+                if nearestDist > 6.0 or nearestDist < 0.01:
                     break
 
                 # Obstacle within 6", wait!
-                drive(0)
+                #drive(0)
             # END DEMO
 
             # Ensure the delta theta is greater than the error
