@@ -5,7 +5,7 @@ from models import *
 from svgpathtools import Path
 from typing import Callable
 from nav_utils import RigidBodyState, discretizePath
-from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
+from odometry import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 from vector import cart2polar
 import numpy as np

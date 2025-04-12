@@ -1,4 +1,4 @@
-from inverse_kinematics import computeWheelAnglesForForward, computeDeltaThetaDeg
+from odometry import computeWheelAnglesForForward, computeDeltaThetaDeg
 from path_following import isTargetReached
 from encoder import readShaftPositions
 from motor import driveLeft, driveRight, drive
