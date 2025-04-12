@@ -97,6 +97,12 @@ def follow_path(botState: RigidBodyState, path: Path,
         positionCorrection = targetState.pos - botState.pos
         positionForwardCorrection, positionHeadingTarget = cart2polar(positionCorrection)
         positionHeadingCorrection = positionHeadingTarget - botState.dir
+        
+        # If the magnitude of the angle is greater than 180°,
+        # just turn the opposite direction
+        positionHeadingDistance = abs(positionHeadingCorrection)
+        if positionHeadingDistance > 180.0:
+            positionHeadingCorrection = -np.sign(positionHeadingCorrection) * (360.0 - positionHeadingDistance)
 
         # Correct heading angle for position
         print(f"Correct heading: {positionHeadingCorrection:.1f}°")
