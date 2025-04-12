@@ -82,11 +82,8 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
                 #emitEvent(inTransitEvent)
                 statusesSent += 1
 
-        botState.pos = floorplan.nodes[currentNodeId]
-
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
-        with dl.startLogSession(f"{currentNodeId}_to_{nextNodeId}") as logSession:
-            follow_path(botState, pathToFollow, logSession)
+        botState = follow_path(botState, pathToFollow, None)
 
 def follow_path(botState: RigidBodyState, path: Path,
                 logSession: dl.DataLogSession) -> RigidBodyState:
