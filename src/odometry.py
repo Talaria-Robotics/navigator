@@ -66,32 +66,19 @@ def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR:
     if distanceR < 0:
         distanceR /= REVERSE_MULT
 
-    # Check for pure forward, otherwise we have to divide by zero
-    if distanceL == distanceR:
+    # Approx. pure forward motion (~½" tolerance)
+    if abs(distanceL - distanceR) < (ANGLE_DISTANCE_RATIO / 2):
         posDelta = polar2cart(distanceL, startPose.dir)
         return Pose(startPose.pos + posDelta, startPose.dir)
+    
+    # Approx. pure rotational motion (~5° body rotation tolerance)
+    if np.sign(distanceL) != np.sign(distanceR) \
+        and abs(abs(distanceL) - abs(distanceR)) < (5 / TURN_RATIO_F):
+        W = 2.0 * L
+        headingChangeRad = (distanceR - distanceL) / W
+        return Pose(startPose.pos, startPose.dir + np.rad2deg(headingChangeRad))
 
-    W = 2.0 * L
-    theta = np.deg2rad(startPose.dir)
-    headingChange = (distanceR - distanceL) / W
-
-    # The path can be modelled as a rotation around some center point.
-    # The instantaneous center of curvature (ICC) is the origin of the circle
-    # the robot appears to travel along.
-    turningRadius = L * (distanceL + distanceR) / (distanceR - distanceL)
-    ICCx = x - turningRadius * np.sin(theta)
-    ICCy = y + turningRadius * np.cos(theta)
-    ICC = np.array((ICCx, ICCy)).reshape(-1, 1)
-
-    # Perform rotation with offset
-    rotation = rotationMatrix(headingChange)
-    posFromICC = pos - ICC
-    newPos = np.matmul(rotation, posFromICC) + ICC
-
-    newX, newY = newPos[0].item(), newPos[1].item()
-    newHeading = normalizeHeading(theta + np.rad2deg(headingChange))
-
-    return Pose(complex(newX, newY), newHeading)
+    raise NotImplementedError("Generalized movements not supported")
 
 if __name__ == "__main__":
     print("1: Compute angular displacements for target")
