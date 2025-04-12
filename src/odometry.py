@@ -56,10 +56,6 @@ def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
     return dTheta / 2.0
 
 def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR: float):
-    x = startPose.pos.real
-    y = startPose.pos.imag
-    pos = np.array((x, y)).reshape(-1, 1)
-
     distanceL, distanceR = wheelAngleL * DISTANCE_ANGLE_RATIO, wheelAngleR * DISTANCE_ANGLE_RATIO
     if distanceL < 0:
         distanceL /= REVERSE_MULT
@@ -71,9 +67,9 @@ def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR:
         posDelta = polar2cart(distanceL, startPose.dir)
         return Pose(startPose.pos + posDelta, startPose.dir)
     
-    # Approx. pure rotational motion (~5° body rotation tolerance)
+    # Approx. pure rotational motion (~10° body rotation tolerance)
     if np.sign(distanceL) != np.sign(distanceR) \
-        and abs(abs(distanceL) - abs(distanceR)) < (5 / TURN_RATIO_F):
+        and abs(abs(distanceL) - abs(distanceR)) < (10 / TURN_RATIO_F):
         W = 2.0 * L
         headingChangeRad = (distanceR - distanceL) / W
         return Pose(startPose.pos, startPose.dir + np.rad2deg(headingChangeRad))
@@ -98,12 +94,11 @@ if __name__ == "__main__":
         angleL, angleR = computeWheelAnglesForForward(forwardDistance)
         print(f"{forwardDistance:3f}\": L{angleL:3f}°, R{angleR:3f}°")
     elif selection == "2":
-        forwardDistance = 12.0
-        angleL, angleR = computeWheelAnglesForForward(forwardDistance)
-        newPose = computePoseFromWheelAngles(Pose(), angleL, angleR)
-        print(newPose)
+        #forwardDistance = 12.0
+        #angleL, angleR = computeWheelAnglesForForward(forwardDistance)
+        #newPose = computePoseFromWheelAngles(Pose(), angleL, angleR)
+        #rint(newPose)
 
-        turnAngle = 90.0
-        angleL, angleR = computeWheelAnglesForTurn(turnAngle)
+        angleL, angleR = -2149.6, 2067.6
         newPose = computePoseFromWheelAngles(Pose(), angleL, angleR)
         print(newPose)
