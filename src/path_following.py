@@ -105,19 +105,19 @@ def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Po
         print(f"Correct forward heading: {positionHeadingCorrection:.1f}°")
         targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(positionHeadingCorrection)
         actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-        botState = computePoseFromWheelAngles(actualAngDispL, actualAngDispR)
+        botState = computePoseFromWheelAngles(botState, actualAngDispL, actualAngDispR)
 
         # Correct forward distance
         print(f"Correct forward distance: {positionForwardCorrection:.2f}\"")
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(positionForwardCorrection)
         actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-        botState = computePoseFromWheelAngles(actualAngDispL, actualAngDispR)
+        botState = computePoseFromWheelAngles(botState, actualAngDispL, actualAngDispR)
 
         # Correct heading angle for final heading
         print(f"Correct final heading: {positionHeadingCorrection:.1f}°")
         targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - positionHeadingTarget)
         actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-        botState = computePoseFromWheelAngles(actualAngDispL, actualAngDispR)
+        botState = computePoseFromWheelAngles(botState, actualAngDispL, actualAngDispR)
 
     print(f"Bot state: {botState}")
     return botState
