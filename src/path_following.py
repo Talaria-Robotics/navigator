@@ -4,8 +4,8 @@ from mail_route_events import *
 from models import *
 from svgpathtools import Path
 from typing import Callable
-from nav_utils import RigidBodyState, discretizePath
-from inverse_kinematics import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
+from nav_utils import Pose, discretizePath, normalizeHeading
+from odometry import computePoseFromWheelAngles, computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 import data_log as dl
 from vector import cart2polar
 import numpy as np
@@ -40,7 +40,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
         stopQueue.put(stopId)
 
     statusesSent: int = 0
-    botState = RigidBodyState()
+    botState = Pose()
     nextStopId: str | None = stopQueue.get()
     
     for nextNodeIndex in range(1, len(tripNodes)):
@@ -82,48 +82,95 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
                 #emitEvent(inTransitEvent)
                 statusesSent += 1
 
-        botState.pos = floorplan.nodes[currentNodeId]
-
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
-        with dl.startLogSession(f"{currentNodeId}_to_{nextNodeId}") as logSession:
-            follow_path(botState, pathToFollow, logSession)
+        botState = follow_path(botState, pathToFollow, None)
 
-def follow_path(botState: RigidBodyState, path: Path,
-                logSession: dl.DataLogSession) -> RigidBodyState:
+def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Pose:
     # Configure data logging
-    logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
+    if logSession:
+        logSession.writeHeaders(["angleL", "angleR", "angDispL", "angDispR", "dThetaL", "dThetaR"])
 
     segments = discretizePath(path)
     for targetState in segments:
-        correction = targetState - botState
+        # Compute correction for position in polar coordinates
+        positionCorrection = targetState.pos - botState.pos
+        positionForwardCorrection, positionHeadingTarget = cart2polar(positionCorrection)
+        positionHeadingCorrection = positionHeadingTarget - botState.dir
+        
+        # If the magnitude of the angle is greater than 180°,
+        # just turn the opposite direction
+        positionHeadingCorrection = normalizeHeading(positionHeadingCorrection)
 
-        # Correct position in local polar space
-        targetDistance, targetStartAngle = cart2polar(correction.pos)
-        print(f"Correction: {targetDistance:.2f}\", {targetStartAngle:.1f}°")
-
-        # Correct start heading angle
-        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(targetStartAngle)
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        # Correct heading angle for position
+        print(f"Correct forward heading: {positionHeadingCorrection:.1f}°")
+        targetAngDispL, targetAngDispR = computeWheelAnglesForTurn(positionHeadingCorrection)
+        actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        #botState = computePoseFromWheelAngles(botState, actualAngDispL, actualAngDispR)
 
         # Correct forward distance
-        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetDistance)
-        driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        print(f"Correct forward distance: {positionForwardCorrection:.2f}\"")
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(positionForwardCorrection)
+        actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        #botState = computePoseFromWheelAngles(botState, actualAngDispL, actualAngDispR)
 
-        # TODO: Correct end heading angle
-        #targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - targetStartAngle)
-        #driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
-
-        # TODO: Verify this
-        botState.pos += correction.pos
-        botState.dir = targetStartAngle
+        # Correct heading angle for final heading
+        print(f"Correct final heading: {positionHeadingCorrection:.1f}°")
+        targetAngDispL, targetAngDispR = computeWheelAnglesForForward(targetState.dir - positionHeadingTarget)
+        actualAngDispL, actualAngDispR = driveToAngularDisplacement(targetAngDispL, targetAngDispR, logSession)
+        #botState = computePoseFromWheelAngles(botState, actualAngDispL, actualAngDispR)
+        
+        # TODO: Update pose with real data
+        botState = targetState
 
     print(f"Bot state: {botState}")
     return botState
 
+def trackDisplacement(angDispSignL, angDispSignR):
+    dutyCycle = 0.8
+    if angDispSignL != angDispSignR:
+        dutyCycle = 1.0
+
+    motorSpeedL, motorSpeedR = dutyCycle * angDispSignL, dutyCycle * angDispSignR
+    
+    angDispL, angDispR = 0, 0
+    lastAngleL, lastAngleR = readShaftPositions()
+    lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
+
+    try:
+        print("Entering step loop...")
+        driveRight(motorSpeedL)
+        driveLeft(motorSpeedR)
+        while True:
+            angleL, angleR = readShaftPositions()
+            
+            # Handle when angle overflows (crossing 0 deg)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+            angDispL += dThetaL
+
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+            angDispR += dThetaR
+            
+            print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
+
+            lastAngleL, lastAngleR = angleL, angleR
+
+            # Ensure the delta theta is greater than the error
+            # in the encoder measurements
+            sleep(0.05)
+    except KeyboardInterrupt:
+        drive(0)
+        print("Navi: Stopping")
+        raise
+
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
     angDispSignL, angDispSignR = np.sign(targetAngDispL), np.sign(targetAngDispR)
-    motorSpeedL, motorSpeedR = 0.8 * angDispSignL, 0.8 * angDispSignR
+
+    dutyCycle = 0.8
+    if angDispSignL != angDispSignR:
+        dutyCycle = 1.0
+
+    motorSpeedL, motorSpeedR = dutyCycle * angDispSignL, dutyCycle * angDispSignR
     
     doneL, doneR = False, False
     angDispL, angDispR = 0, 0
@@ -134,21 +181,11 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     dataEntries = []
 
     try:
-        print("Entering step loop...")
+        #print("Entering step loop...")
         while not (doneL and doneR):
-            angleL, angleR = readShaftPositions()
-            
-            # Handle when angle overflows (crossing 0 deg)
-            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
-            angDispL += dThetaL
-
-            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
-            angDispR += dThetaR
-            #print(f"Delta Theta: {dThetaL:.1f} {dThetaR:.1f}")
-
             # Compute the remaining angular displacement
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
-            print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
+            #print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
 
             if isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01):
                 doneL = True
@@ -159,6 +196,19 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                 doneR = True
                 motorSpeedR = 0.0
             driveLeft(motorSpeedR)
+
+            if doneL and doneR:
+                break
+
+            angleL, angleR = readShaftPositions()
+            
+            # Handle when angle overflows (crossing 0 deg)
+            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+            angDispL += dThetaL
+
+            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+            angDispR += dThetaR
+            #print(f"Delta Theta: {dThetaL:.1f} {dThetaR:.1f}")
 
             lastAngleL, lastAngleR = angleL, angleR
             lastTargetDeltaL, lastTargetDeltaR = targetDeltaL, targetDeltaR
@@ -175,6 +225,9 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
     if logSession is not None:
         for entry in dataEntries:
             logSession.writeEntry(entry)
+    
+    # Return the actual angular displacement for future calculations
+    return angDispL, angDispR
 
 def isTargetReached(previous: float, current: float, tolerance: float) -> bool:
     # If we're already within the specified tolerance, we're golden

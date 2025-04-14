@@ -1,7 +1,8 @@
+from collections.abc import Generator
 from threading import Thread
 from rplidar import RPLidar
 from sys import float_info
-from vector import getValid, nearest
+from operator import itemgetter
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar = RPLidar(PORT_NAME)
@@ -30,6 +31,24 @@ def testPrint(data):
 
 def scan() -> list[float]:
     return _scanData
+
+def cleanScan() -> Generator[float]:
+    """
+    Cleans a raw scan and returns data in inches
+    """
+    data = scan()
+    for angle, dist in enumerate(data):
+        # Ignore distances less than ~16 mm
+        if dist < 16.0:
+            yield 0.0
+        else:
+            # Convert mm to in
+            yield dist * 0.0393700787
+
+def getNearest() -> tuple[float, float]:
+    data = cleanScan()
+    angle, dist = min(enumerate(data), key=itemgetter(1))
+    return dist, angle
     
 def init():
     # The A1 LIDAR really doesn't like one-shot measurements,
@@ -43,14 +62,7 @@ def init():
 def disconnect():
     lidar.stop_motor()
     lidar.stop()
-    lidar.disconnect()
-
-
-def getNearest():                                   # combine multiple functions into one.  Call to get nearest obstacle.
-    scan = lidar.polarScan()                        # get a reading in meters and degrees
-    valids = getValid(scan)                         # remove the bad readings
-    vec = nearest(valids)                           # find the nearest
-    return vec                                      # pass the closest valid vector [m, deg]
+    lidar.disconnect()                                # pass the closest valid vector [m, deg]
 
 
 if __name__ == "__main__":
