@@ -58,7 +58,7 @@ def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR:
     
     # Approx. pure rotational motion (~10° body rotation tolerance)
     if np.sign(distanceL) != np.sign(distanceR) \
-        and abs(abs(distanceL) - abs(distanceR)) < (10 / TURN_RATIO_F):
+        and abs(abs(distanceL) - abs(distanceR)) < (10 / TURN_RATIO):
         W = 2.0 * L
         headingChangeRad = (distanceR - distanceL) / W
         return Pose(startPose.pos, startPose.dir + np.rad2deg(headingChangeRad))
