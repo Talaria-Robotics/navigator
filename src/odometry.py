@@ -25,13 +25,9 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     Return value is (left, right) in degrees.
     """
     # Multiply by ratio between one body angle unit and one wheel
-    # angle unit. The exact value of this ratio depends on whether
-    # the motor is being driven forward or backward.
-
-    if bodyAngle >= 0:
-        return (-bodyAngle * TURN_RATIO_B), (bodyAngle * TURN_RATIO_F)
-    else:
-        return (-bodyAngle * TURN_RATIO_F), (bodyAngle * TURN_RATIO_B)
+    # angle unit
+    wheelAngle = bodyAngle * 10.0544 # deg/deg
+    return -wheelAngle, wheelAngle
 
 def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, float]:
     """
@@ -41,8 +37,6 @@ def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, f
     Return value is (left, right) in degrees.
     """
     wheelAngle = forwardDistanceInches * ANGLE_DISTANCE_RATIO
-    if wheelAngle < 0:
-        wheelAngle *= REVERSE_MULT
     return wheelAngle, wheelAngle
 
 def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
@@ -57,10 +51,6 @@ def computeDeltaThetaDeg(previousAngle: float, currentAngle: float) -> float:
 
 def computePoseFromWheelAngles(startPose: Pose, wheelAngleL: float, wheelAngleR: float):
     distanceL, distanceR = wheelAngleL * DISTANCE_ANGLE_RATIO, wheelAngleR * DISTANCE_ANGLE_RATIO
-    if distanceL < 0:
-        distanceL /= REVERSE_MULT
-    if distanceR < 0:
-        distanceR /= REVERSE_MULT
 
     # Approx. pure forward motion (~½" tolerance)
     if abs(distanceL - distanceR) < (ANGLE_DISTANCE_RATIO / 2):
