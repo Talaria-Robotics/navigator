@@ -1,3 +1,4 @@
+from lidar import cleanScan
 import numpy as np
 from typing import Union
 
@@ -30,11 +31,14 @@ def getMinimumDistances() -> list[float]:
     
     return _box
 
-def nearestWithinBox(scanData: list[float]) -> Union[tuple[int, float], None]:
+def nearestWithinBox(scanData: Union[list[float], None] = None) -> Union[tuple[int, float], None]:
     """
     Returns the angle and distance of the nearest obstacle within
     the box window, or None if no obstacle was within the box.
     """
+    if scanData == None:
+        scanData = list(cleanScan())
+
     minDistances = getMinimumDistances()
     for angle in range(0, 180):
         measured = scanData[angle]

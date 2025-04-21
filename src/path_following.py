@@ -6,6 +6,7 @@ from svgpathtools import Path
 from typing import Callable
 from nav_utils import Pose, discretizePath, normalizeHeading
 from odometry import computePoseFromWheelAngles, computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
+from obstacle_avoidance import nearestWithinBox
 import data_log as dl
 from vector import cart2polar
 import numpy as np
@@ -204,6 +205,11 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             sleep(0.05)
 
             dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
+
+            # Stop if obstacles are detected
+            while nearestWithinBox() != None:
+                pass
+
     except KeyboardInterrupt:
         drive(0)
         print("Navi: Stopping")
