@@ -11,8 +11,7 @@ L = 11.5625                           # half of the wheelbase
 
 # Calibrated parameters
 REVERSE_MULT = 4269.9 / 4042.075      # motors need a bit more when driving backwards
-TURN_RATIO_F = 4042.075 / 360.0       # wheel_deg / body_deg
-TURN_RATIO_B = 4269.900 / 360.0   
+TURN_RATIO = 10.0544                  # wheel_deg / body_deg
 ANGLE_DISTANCE_RATIO = 49.822         # deg/in
 DISTANCE_ANGLE_RATIO = 1 / ANGLE_DISTANCE_RATIO         # in/deg
 
@@ -26,7 +25,7 @@ def computeWheelAnglesForTurn(bodyAngle: float) -> tuple[float, float]:
     """
     # Multiply by ratio between one body angle unit and one wheel
     # angle unit
-    wheelAngle = bodyAngle * 10.0544 # deg/deg
+    wheelAngle = bodyAngle * TURN_RATIO # deg/deg
     return -wheelAngle, wheelAngle
 
 def computeWheelAnglesForForward(forwardDistanceInches: float) -> tuple[float, float]:
