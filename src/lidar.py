@@ -71,6 +71,7 @@ def init():
             lidar = RPLidar(PORT_NAME)
             break
         except:
+            print("Failed to initialize LIDAR, retrying...")
             sleep(0.5)
             pass
     
@@ -83,6 +84,7 @@ def init():
     _scanThread.start()
 
 def disconnect():
+    global lidar
     lidar.stop_motor()
     lidar.stop()
     lidar.disconnect()
