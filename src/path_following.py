@@ -125,42 +125,28 @@ def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Po
     print(f"Bot state: {botState}")
     return botState
 
-def trackDisplacement(angDispSignL, angDispSignR):
-    dutyCycle = 0.8
-    if angDispSignL != angDispSignR:
-        dutyCycle = 1.0
-
-    motorSpeedL, motorSpeedR = dutyCycle * angDispSignL, dutyCycle * angDispSignR
-    
+def trackDisplacementWhile(action: Callable[..., bool]) -> tuple[float, float]:
     angDispL, angDispR = 0, 0
     lastAngleL, lastAngleR = readShaftPositions()
-    lastTargetDeltaL, lastTargetDeltaR = np.nan, np.nan
 
-    try:
-        print("Entering step loop...")
-        driveRight(motorSpeedL)
-        driveLeft(motorSpeedR)
-        while True:
-            angleL, angleR = readShaftPositions()
-            
-            # Handle when angle overflows (crossing 0 deg)
-            dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
-            angDispL += dThetaL
+    while action():
+        angleL, angleR = readShaftPositions()
+        
+        # Handle when angle overflows (crossing 0 deg)
+        dThetaL = computeDeltaThetaDeg(lastAngleL, angleL)
+        angDispL += dThetaL
 
-            dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
-            angDispR += dThetaR
-            
-            print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
+        dThetaR = computeDeltaThetaDeg(lastAngleR, angleR)
+        angDispR += dThetaR
+        
+        print(f"Displacement: {angDispL:.2f} {angDispR:.2f}")
 
-            lastAngleL, lastAngleR = angleL, angleR
+        lastAngleL, lastAngleR = angleL, angleR
 
-            # Ensure the delta theta is greater than the error
-            # in the encoder measurements
-            sleep(0.05)
-    except KeyboardInterrupt:
-        drive(0)
-        print("Navi: Stopping")
-        raise
+        # Ensure the delta theta is greater than the error
+        # in the encoder measurements
+        sleep(0.05)
+    return angDispL, angDispR
 
 def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
                                logSession: dl.DataLogSession):
