@@ -1,14 +1,19 @@
 from collections.abc import Generator
 from threading import Thread
+from typing import Union
 from rplidar import RPLidar
 from sys import float_info
 from operator import itemgetter
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar = RPLidar(PORT_NAME)
-_scanData = [0] * 360
+_scanData = None
 
 def _scanLoop():
+    global _scanData
+    if _scanData == None:
+        _scanData = [0] * 360
+
     for scan in lidar.iter_scans():
         for (quality, angle, distance) in scan:
             clampedAngle = min([359, round(angle)])
@@ -29,7 +34,10 @@ def testPrint(data):
     print(f"Nearest: {nearest_angle}°, {nearest_dist}")
     print()
 
-def scan() -> list[float]:
+def scan() -> Union[list[float], None]:
+    # Wait for scan data to become available
+    while _scanData == None:
+        sleep(0.1)
     return _scanData
 
 def cleanScan() -> Generator[float]:
