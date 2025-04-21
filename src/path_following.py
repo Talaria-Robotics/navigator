@@ -209,6 +209,7 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
 
             # Stop if obstacles are detected
             while nearestWithinBox() != None:
+                print("Obstacle detected")
                 pass
 
     except KeyboardInterrupt:

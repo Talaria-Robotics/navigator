@@ -4,6 +4,7 @@ from typing import Union
 from rplidar import RPLidar
 from sys import float_info
 from operator import itemgetter
+from time import sleep
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar: RPLidar
