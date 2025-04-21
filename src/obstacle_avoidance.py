@@ -1,28 +1,34 @@
 import numpy as np
 from typing import Union
 
+_box = None
+
 def _cosDeg(thetaDeg: float) -> float:
     thetaRad = np.deg2rad(thetaDeg)
     return float(np.cos(thetaRad))
 
 def getMinimumDistances() -> list[float]:
+    global _box
+    if _box != None:
+        return _box
+
     # Creating the "Box of View"
-    box = []
+    _box = []
     for x in range(0, 59):
         value = 15 / _cosDeg(x)
-        box.append(value)
+        _box.append(value)
     for x in range(59, 90):
         value = 24 / (_cosDeg(90-x))
-        box.append(value)
+        _box.append(value)
 
     for x in range(90, 123):
         value = 24 / (_cosDeg(x-90))
-        box.append(value)
+        _box.append(value)
     for x in range(123, 180):
         value = 15 / (_cosDeg(180-x))
-        box.append(value)
+        _box.append(value)
     
-    return box
+    return _box
 
 def nearestWithinBox(scanData: list[float]) -> Union[tuple[int, float], None]:
     """
@@ -41,6 +47,9 @@ def nearestWithinBox(scanData: list[float]) -> Union[tuple[int, float], None]:
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
+    r = getMinimumDistances()
+    r = getMinimumDistances()
+    r = getMinimumDistances()
     r = getMinimumDistances()
     theta = list(range(0, 180))
     for a in theta:
