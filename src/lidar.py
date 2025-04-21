@@ -47,6 +47,9 @@ def cleanScan() -> Generator[float]:
     """
     data = scan()
     for angle, dist in enumerate(data):
+        if angle < 90 or angle > 270:
+            continue
+
         # Ignore distances less than ~16 mm
         if dist < 16.0:
             yield 0.0

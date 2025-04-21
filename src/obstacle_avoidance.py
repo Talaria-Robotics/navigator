@@ -1,4 +1,4 @@
-from lidar import cleanScan
+from lidar import cleanScan, disconnect
 import numpy as np
 from typing import Union
 
@@ -49,15 +49,11 @@ def nearestWithinBox(scanData: Union[list[float], None] = None) -> Union[tuple[i
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    r = getMinimumDistances()
-    r = getMinimumDistances()
-    r = getMinimumDistances()
-    r = getMinimumDistances()
-    theta = list(range(0, 180))
-    for a in theta:
-        theta[a] = np.deg2rad(a)
-    
-    plt.polar(theta, r)
-    plt.show()
+    try:
+        while True:
+            nearest = nearestWithinBox()
+            if nearest != None:
+                a, r = nearest
+                print(f"Obstacle at {r:.2f}\", {a:.1f}°")
+    except KeyboardInterrupt:
+        disconnect()
