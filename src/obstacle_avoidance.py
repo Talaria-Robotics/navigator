@@ -15,12 +15,10 @@ def getMinimumDistances() -> list[float]:
         value = 24 / (_cosDeg(90-x))
         box.append(value)
 
-    box.append(24)
-
-    for x in range(91, 148):
+    for x in range(90, 123):
         value = 24 / (_cosDeg(x-90))
         box.append(value)
-    for x in range(148, 180):
+    for x in range(123, 180):
         value = 15 / (_cosDeg(180-x))
         box.append(value)
     
