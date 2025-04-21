@@ -6,7 +6,7 @@ from sys import float_info
 from operator import itemgetter
 
 PORT_NAME = '/dev/ttyUSB0'
-lidar = RPLidar(PORT_NAME)
+lidar: RPLidar
 _scanData = None
 
 def _scanLoop():
@@ -59,6 +59,17 @@ def getNearest() -> tuple[float, float]:
     return dist, angle
     
 def init():
+    global lidar
+    # The A1 LIDAR has lots of issues connecting. We'll just keep
+    # retrying unitl it works.
+    while True:
+        try:
+            lidar = RPLidar(PORT_NAME)
+            break
+        except:
+            sleep(0.5)
+            pass
+    
     # The A1 LIDAR really doesn't like one-shot measurements,
     # so all readings have to be taking continuously in the same loop.
     # If we tried that in the scan() method, we'd get stuck in an
@@ -70,7 +81,7 @@ def init():
 def disconnect():
     lidar.stop_motor()
     lidar.stop()
-    lidar.disconnect()                                # pass the closest valid vector [m, deg]
+    lidar.disconnect()
 
 
 if __name__ == "__main__":
