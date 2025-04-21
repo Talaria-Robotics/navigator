@@ -15,8 +15,9 @@ from time import sleep
 MOCK = False
 
 if not MOCK:
-    from motor import drive, driveLeft, driveRight
+    from motor import drive, driveLeft, driveRight, initMotors
     from encoder import readShaftPositions
+    initMotors()
 else:
     from motor_mock import drive, driveLeft, driveRight, startMock, stopMock
     from encoder_mock import readShaftPositions
