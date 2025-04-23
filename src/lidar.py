@@ -69,6 +69,14 @@ def init():
     while True:
         try:
             lidar = RPLidar(PORT_NAME)
+    
+            # The A1 LIDAR really doesn't like one-shot measurements,
+            # so all readings have to be taking continuously in the same loop.
+            # If we tried that in the scan() method, we'd get stuck in an
+            # infinite loop and hang the caller. Instead, we'll spin up
+            # a separate thread that updates _scanData as readings come in.
+            _scanThread = Thread(target=_scanLoop, daemon=True)
+            _scanThread.start()
 
             # Wait for LIDAR to actually start retuning data
             print("Waiting for LIDAR to be ready...")
@@ -76,22 +84,18 @@ def init():
                 data = scan()
                 if sum(data) > 0:
                     break
+                sleep(0.5)
 
             print("LIDAR initialized")
             break
+        except KeyboardInterrupt:
+            disconnect()
+            raise
         except:
             print("Failed to initialize LIDAR, retrying...")
             disconnect()
             sleep(0.5)
             pass
-    
-    # The A1 LIDAR really doesn't like one-shot measurements,
-    # so all readings have to be taking continuously in the same loop.
-    # If we tried that in the scan() method, we'd get stuck in an
-    # infinite loop and hang the caller. Instead, we'll spin up
-    # a separate thread that updates _scanData as readings come in.
-    _scanThread = Thread(target=_scanLoop, daemon=True)
-    _scanThread.start()
 
 def disconnect():
     global lidar
