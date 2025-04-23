@@ -13,6 +13,9 @@ mail: 0,0
 j2: 48, 0
 room2: 72, 0
 j1: 48, 30
+j3: -18, 30
+j4: -18, 66
+j5: -42, 0
 room1: 72, 30 
 room3: -42, 66
 
@@ -21,5 +24,8 @@ mail > j2:
 j2 > room2: 
 j2 > j1: 
 j1 > room1:
-mail > room3: H -42
-room3 > j1: h 24 v -36
+j1 > j3:
+j3 > j4:
+j4 > room3:
+mail > j5:
+j5 > room3:
