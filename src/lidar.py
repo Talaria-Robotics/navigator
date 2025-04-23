@@ -69,6 +69,14 @@ def init():
     while True:
         try:
             lidar = RPLidar(PORT_NAME)
+
+            # Wait for LIDAR to actually start retuning data
+            print("Waiting for LIDAR to be ready...")
+            while True:
+                data = scan()
+                if sum(data) > 0:
+                    break
+
             print("LIDAR initialized")
             break
         except:
