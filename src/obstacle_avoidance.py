@@ -1,4 +1,4 @@
-from lidar import cleanScan, disconnect
+from lidar import cleanScan, disconnect, init
 import numpy as np
 from typing import Union
 
@@ -49,6 +49,7 @@ def nearestWithinBox(scanData: Union[list[float], None] = None) -> Union[tuple[i
 
 
 if __name__ == "__main__":
+    init()
     try:
         while True:
             nearest = nearestWithinBox()
