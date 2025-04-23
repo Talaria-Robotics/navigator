@@ -61,6 +61,16 @@ def getNearest() -> tuple[float, float]:
     data = cleanScan()
     angle, dist = min(enumerate(data), key=itemgetter(1))
     return dist, angle
+
+def testCalibrate():
+    data = scan()
+    n = 10
+    for i in range(0, len(data), n):
+        startAngle = i
+        endAngle = i + n
+        dataChunk = data[i:i + n]
+        averageDistance = sum(dataChunk) / n
+        print(f"[{startAngle}, {endAngle}): {averageDistance:.2f}")
     
 def init():
     global lidar
@@ -109,8 +119,6 @@ if __name__ == "__main__":
 
     init()
     try:
-        while True:
-            print(scan())
-            sleep(1.0)
+        testCalibrate()
     except KeyboardInterrupt:
         disconnect()
