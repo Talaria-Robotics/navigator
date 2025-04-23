@@ -42,7 +42,7 @@ app = Sanic("talaria_navigator",
 
 @app.listener("before_server_start")
 async def setup_udp(app):
-    thread = threading.Thread(target=transitFeed)
+    thread = threading.Thread(target=transitFeedEntry)
     thread.start()
 
 @app.get("/health")
