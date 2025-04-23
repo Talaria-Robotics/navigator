@@ -1,6 +1,6 @@
 from gpiozero import PWMOutputDevice as pwm
 from gpiozero import Device
-from gpiozero.pins.rpigpio import RPiGPIOFactory
+from gpiozero.pins.pigpio import PiGPIOFactory
 import time
 import numpy as np
 
@@ -22,7 +22,7 @@ def initMotors():
     
     isInitialized = True
 
-    Device.pin_factory = RPiGPIOFactory()
+    Device.pin_factory = PiGPIOFactory()
 
     global left_chA, left_chB, right_chA, right_chB
     left_chA = pwm(17, frequency=frq, initial_value=0)
@@ -66,6 +66,7 @@ def drive(speed: float):
     right_chA.value = motorPWM[1]
 
 if __name__ == "__main__":
+    initMotors()
     while True:
         print("Driving forward")
         drive(0.8)
