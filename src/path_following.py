@@ -208,9 +208,10 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
 
             # Stop if obstacles are detected
-            while nearestWithinBox() != None:
-                print("Obstacle detected")
-                pass
+            #while nearestWithinBox() != None:
+            #    drive(0)
+            #    print("Obstacle detected")
+            #    pass
 
     except KeyboardInterrupt:
         drive(0)
