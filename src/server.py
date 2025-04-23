@@ -53,7 +53,7 @@ async def getPossibleRouteInfo(request: Request):
 
     routeInfo.rooms = [
         MailRouteRoom(id, name)
-        for id, name in floorplan.rooms.items()[1:]
+        for id, name in list(floorplan.rooms.items())[1:]
     ]
 
     routeInfo.bins = [
