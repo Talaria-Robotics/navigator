@@ -38,12 +38,7 @@ ctx.bins = {
 
 app = Sanic("talaria_navigator",
     dumps=custom_dumps, loads=loads,
-    ctx=ctx)
-
-@app.listener("before_server_start")
-async def setup_udp(app):
-    thread = threading.Thread(target=transitFeedEntry)
-    thread.start()
+    ctx=ctx)    
 
 @app.get("/health")
 async def health(request: Request):
@@ -150,3 +145,7 @@ def waitForConfirmationFromSocket(sock: socket.socket):
         confirmationData = sock.recv(512)
         if confirmationData.startswith(b'%'):
             break
+
+thread = threading.Thread(target=transitFeedEntry)
+thread.start()
+print("Initialization complete")
