@@ -1,4 +1,6 @@
 from gpiozero import PWMOutputDevice as pwm
+from gpiozero import Device
+from gpiozero.pins.rpigpio import RPiGPIOFactory
 import time
 import numpy as np
 
@@ -19,6 +21,8 @@ def initMotors():
         return
     
     isInitialized = True
+
+    Device.pin_factory = RPiGPIOFactory()
 
     global left_chA, left_chB, right_chA, right_chB
     left_chA = pwm(17, frequency=frq, initial_value=0)
