@@ -118,7 +118,5 @@ if __name__ == "__main__":
     from time import sleep
 
     init()
-    try:
-        testCalibrate()
-    except KeyboardInterrupt:
-        disconnect()
+    testCalibrate()
+    disconnect()

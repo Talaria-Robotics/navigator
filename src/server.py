@@ -89,8 +89,8 @@ def transitFeedEntry():
     start, addr = sock.recvfrom(512)
     print(f"Connected to Control Panel at {addr}, got {start}")
 
-    if False:
-        transitFeed(app.ctx.requestedRoute,
+    if True:
+        transitFeed(app.ctx.requestedRoute, app.ctx.floorplan, app.ctx.bins,
                     lambda e: sendEventToSocket(e, sock, addr),
                     lambda: waitForConfirmationFromSocket(sock))
     else:

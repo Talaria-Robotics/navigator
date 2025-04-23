@@ -65,10 +65,10 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
                     arrivedAtStopEvent = ArrivedAtStopEvent(room, bin)
                     arrivedAtStopEvent.orderNumber = statusesSent
                     
-                    #emitEvent(arrivedAtStopEvent)
+                    emitEvent(arrivedAtStopEvent)
                     statusesSent += 1
 
-                    #waitForConfirmation()
+                    waitForConfirmation()
 
             if stopQueue.empty():
                 nextStopId = None
@@ -81,7 +81,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
                 inTransitEvent = InTransitEvent(room)
                 inTransitEvent.orderNumber = statusesSent
                 
-                #emitEvent(inTransitEvent)
+                emitEvent(inTransitEvent)
                 statusesSent += 1
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
