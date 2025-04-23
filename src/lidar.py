@@ -72,6 +72,7 @@ def init():
             break
         except:
             print("Failed to initialize LIDAR, retrying...")
+            disconnect()
             sleep(0.5)
             pass
     
