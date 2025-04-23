@@ -69,6 +69,7 @@ def init():
     while True:
         try:
             lidar = RPLidar(PORT_NAME)
+            print("LIDAR initialized")
             break
         except:
             print("Failed to initialize LIDAR, retrying...")
