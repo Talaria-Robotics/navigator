@@ -69,7 +69,7 @@ def _scanLoop():
 
     for scan in lidar.iter_scans():
         for (quality, angle, distance) in scan:
-            clampedAngle = mod(angle)
+            clampedAngle = mod(angle, 360.0)
             _scanData[clampedAngle] = distance
 
 def scan() -> LidarScanData:
