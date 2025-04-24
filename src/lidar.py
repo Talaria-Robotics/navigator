@@ -129,7 +129,6 @@ def init():
             print("Failed to initialize LIDAR, retrying...")
             disconnect()
             sleep(0.5)
-            pass
 
 def disconnect():
     global lidar
@@ -138,8 +137,22 @@ def disconnect():
     lidar.disconnect()
 
 if __name__ == "__main__":
-    init()
-    with open("logs/lidar.csv", 'w') as f:
-        lines = [f"{a},{d}\r\n" for a, d in cleanScan()]
-        f.writelines(lines)
-    disconnect()
+    if False:
+        init()
+        with open("logs/lidar.csv", 'w') as f:
+            lines = [f"{a},{d}\r\n" for a, d in cleanScan()]
+            f.writelines(lines)
+        disconnect()
+    else:
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        thetas = []
+        distances = []
+        with open("logs\\lidar.csv", 'r') as f:
+            for line in f.readlines():
+                t, d = line.split(',')
+                thetas.append(np.deg2rad(float(t)))
+                distances.append(float(d))
+        plt.polar(thetas, distances)
+        plt.show()
