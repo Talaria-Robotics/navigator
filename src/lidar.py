@@ -136,14 +136,15 @@ def disconnect():
     lidar.disconnect()
 
 if __name__ == "__main__":
+    init()
     while (1):
         data = cleanScan()._data
         angles, distances = list(data.keys()), list(data.values())
-        print(list(zip(angles, distances)))
+        #print(list(zip(angles, distances)))
 
-        min_dist = min(distances)
-        print(angles[distances.index(min_dist)], min_dist)
+        if len(distances) > 0:
+            min_dist = min(distances)
+            print(angles[distances.index(min_dist)], min_dist)
         print("----")
-        sleep(0.1)
 
 
