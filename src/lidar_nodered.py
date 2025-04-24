@@ -63,9 +63,11 @@ class SCUTTLE:
 
     def scan_loop(self):
         while True:
-            data = self.cartesian_scan()
-            data_msg = data.encode('utf-8')
+            data1, data2 = self.cartesian_scan()
+            data_msg = data1.encode('utf-8')
             self.lidarSock.sendto(data_msg, ("127.0.0.1", 3555))
+            data_msg = data2.encode('utf-8')
+            self.lidarSock.sendto(data_msg, ("127.0.0.1", 3558))
             
             # Read encoder positions
             encL_val, encR_val = encoder.readShaftPositions()
