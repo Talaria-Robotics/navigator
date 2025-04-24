@@ -67,10 +67,9 @@ def _scanLoop():
     if _scanData == None:
         _scanData = {}
 
-    for scan in lidar.iter_scans():
-        for (quality, angle, distance) in scan:
-            clampedAngle = mod(angle, 360.0)
-            _scanData[clampedAngle] = distance
+    for (new_scan, quality, angle, distance) in lidar.iter_measures():
+        if distance != 0.0:
+            _scanData[angle] = distance
 
 def scan() -> LidarScanData:
     # Wait for scan data to become available
