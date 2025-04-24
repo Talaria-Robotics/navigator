@@ -15,21 +15,24 @@ def getMinimumDistances() -> list[float]:
 
     # Creating the "Box of View"
     _box = []
-    for x in range(0, 59):
-        value = 15 / _cosDeg(x)
-        _box.append(value)
-    for x in range(59, 90):
-        value = 24 / (_cosDeg(90-x))
-        _box.append(value)
-
-    for x in range(90, 123):
-        value = 24 / (_cosDeg(x-90))
-        _box.append(value)
-    for x in range(123, 180):
-        value = 15 / (_cosDeg(180-x))
+    for x in range(0, 180):
+        value = minimumDistance(x)
         _box.append(value)
     
     return _box
+
+def minimumDistance(angle: float) -> float:
+    x = np.mod(angle, 360.0)
+    
+    if x < 59:
+        return 15 / _cosDeg(x)
+    if x < 90:
+        return 24 / (_cosDeg(90-x))
+    if x < 123:
+        return 24 / (_cosDeg(x-90))
+    if x < 180:
+        return 15 / (_cosDeg(180-x))
+    return 0.0
 
 def nearestWithinBox(scanData: Union[LidarScanData, None] = None) -> Union[tuple[int, float], None]:
     """
@@ -39,9 +42,8 @@ def nearestWithinBox(scanData: Union[LidarScanData, None] = None) -> Union[tuple
     if scanData == None:
         scanData = cleanScan()
 
-    minDistances = getMinimumDistances()
     for angle, measured in scanData:
-        minimum = minDistances[angle]
+        minimum = minimumDistance(angle)
         if measured <= minimum:
             return angle, measured
     return None
