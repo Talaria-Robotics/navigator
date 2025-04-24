@@ -72,6 +72,8 @@ def _scanLoop():
             _scanData = dict(_rawScanData)
             _rawScanData.clear()
         if distance != 0.0:
+            # Angle is inverted
+            angle = 360 - angle
             # Convert in
             _rawScanData[angle] = distance * (5.5 / 165.9)
 
@@ -86,7 +88,7 @@ def cleanScan() -> LidarScanData:
     Cleans a raw scan and returns data in inches
     """
     data = scan()
-    scopedData: LidarScanData = data[90:270]
+    scopedData: LidarScanData = data #[90:270]
     filteredData: dict[float, float] = {}
     for angle, dist in scopedData:
         # Ignore distances less than ~0.5 in
