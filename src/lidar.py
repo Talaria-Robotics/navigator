@@ -67,7 +67,7 @@ def _scanLoop():
     global _scanData
     global _rawScanData
 
-    for (new_scan, quality, angle, distance) in lidar.iter_measures(max_buf_meas=4096):
+    for (new_scan, quality, angle, distance) in lidar.iter_measures(scan_type='express'):
         if new_scan:
             _scanData = dict(_rawScanData)
             _rawScanData.clear()
