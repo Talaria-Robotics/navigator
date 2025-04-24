@@ -75,7 +75,7 @@ def scan() -> LidarScanData:
     # Wait for scan data to become available
     while _scanData == None:
         sleep(0.1)
-    return LidarScanData(_scanData)
+    return LidarScanData(dict(_scanData))
 
 def cleanScan() -> LidarScanData:
     """
