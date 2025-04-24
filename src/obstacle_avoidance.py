@@ -1,6 +1,6 @@
 from lidar import LidarScanData, cleanScan, disconnect, init
 import numpy as np
-from typing import Union
+from typing import Iterator, Union
 
 _box = None
 
@@ -34,10 +34,9 @@ def minimumDistance(angle: float) -> float:
         return 15 / (_cosDeg(180-x))
     return 0.0
 
-def nearestWithinBox(scanData: Union[LidarScanData, None] = None) -> Union[tuple[int, float], None]:
+def nearestWithinBox(scanData: Union[LidarScanData, None] = None) -> Iterator[tuple[float, float]]:
     """
-    Returns the angle and distance of the nearest obstacle within
-    the box window, or None if no obstacle was within the box.
+    Returns the angle and distance of all obstacle within the box window.
     """
     if scanData == None:
         scanData = cleanScan()
@@ -45,8 +44,7 @@ def nearestWithinBox(scanData: Union[LidarScanData, None] = None) -> Union[tuple
     for angle, measured in scanData:
         minimum = minimumDistance(angle)
         if measured <= minimum:
-            return angle, measured
-    return None
+            yield angle, measured
 
 
 if __name__ == "__main__":
@@ -54,8 +52,8 @@ if __name__ == "__main__":
     try:
         while True:
             nearest = nearestWithinBox()
-            if nearest != None:
-                a, r = nearest
-                print(f"Obstacle at {r:.2f}\", {a:.1f}°")
+            for obstacle in nearest:
+                a, r = obstacle
+                print(f"Obstacle at {a:.1f}° {r:.2f}\"")
     except KeyboardInterrupt:
         disconnect()
