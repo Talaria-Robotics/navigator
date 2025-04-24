@@ -154,5 +154,8 @@ if __name__ == "__main__":
                 t, d = line.split(',')
                 thetas.append(np.deg2rad(float(t)))
                 distances.append(float(d))
-        plt.polar(thetas, distances)
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='polar')
+        c = ax.scatter(thetas, distances)
         plt.show()
