@@ -139,6 +139,7 @@ def disconnect():
 
 if __name__ == "__main__":
     init()
-    with open("logs/lidar.csv") as f:
-        lines = [f"{a},{d}" for a, d in cleanScan()]
+    with open("logs/lidar.csv", 'w') as f:
+        lines = [f"{a},{d}\r\n" for a, d in cleanScan()]
         f.writelines(lines)
+    disconnect()
