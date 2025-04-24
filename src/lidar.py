@@ -6,6 +6,7 @@ from time import sleep
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar: RPLidar
+_rawScanData: dict[float, float] = {}
 _scanData: dict[float, float] = None
 
 class LidarScanData:
@@ -64,12 +65,14 @@ class LidarScanData:
 
 def _scanLoop():
     global _scanData
-    if _scanData == None:
-        _scanData = {}
+    global _rawScanData
 
     for (new_scan, quality, angle, distance) in lidar.iter_measures():
+        if new_scan:
+            _scanData = dict(_rawScanData)
+            _rawScanData.clear()
         if distance != 0.0:
-            _scanData[angle] = distance
+            _rawScanData[angle] = distance
 
 def scan() -> LidarScanData:
     # Wait for scan data to become available
