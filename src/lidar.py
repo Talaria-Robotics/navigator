@@ -139,14 +139,6 @@ def disconnect():
 
 if __name__ == "__main__":
     init()
-    while (1):
-        data = cleanScan()._data
-        angles, distances = list(data.keys()), list(data.values())
-        #print(list(zip(angles, distances)))
-
-        if len(distances) > 0:
-            min_dist = min(distances)
-            print(angles[distances.index(min_dist)], min_dist)
-        print("----")
-
-
+    with open("logs/lidar.csv") as f:
+        lines = [f"{a},{d}" for a, d in cleanScan()]
+        f.writelines(lines)
