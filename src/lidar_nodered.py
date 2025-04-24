@@ -5,6 +5,7 @@ import json
 import lidar
 import encoder
 import numpy as np
+from obstacle_avoidance import minimumDistance
 import vector as vec
 from time import sleep
 from threading import Thread
@@ -81,13 +82,16 @@ class SCUTTLE:
 
     def cartesian_scan(self):
         rows = ''
+        window_rows = ''
         polar_data = lidar.scan()
 
         for t, d in polar_data:
+            min_d = minimumDistance(t)
             cartesian_point = vec.polar2cart(d,t)
             rows += self.format_row(cartesian_point)
+            window_rows += self.format_row(vec.polar2cart(min_d, t))
 
-        return rows[:-1]
+        return rows[:-1], window_rows[:-1]
 
     # Format the x,y lidar coordinates so that the bubble-chart can display them
     def format_row(self, point: complex, r=3):
