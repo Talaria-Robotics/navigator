@@ -73,9 +73,12 @@ def _scanLoop():
             _rawScanData.clear()
         if distance != 0.0:
             # Angle is inverted
-            angle = 360 - angle
-            # Convert in
-            _rawScanData[angle] = distance * (5.5 / 165.9)
+            angle = 360 - angle + 11.4
+            # Convert mm to in
+            # It should be 0.03937008, but for some reason that's not accurate
+            # 0.03945147679324894514767932489451
+            # 0.03774284786943
+            _rawScanData[angle] = distance * 0.03937008
 
 def scan() -> LidarScanData:
     # Wait for scan data to become available
@@ -152,8 +155,11 @@ if __name__ == "__main__":
         with open("logs\\lidar.csv", 'r') as f:
             for line in f.readlines():
                 t, d = line.split(',')
-                thetas.append(np.deg2rad(float(t)))
-                distances.append(float(d))
+                t, d = float(t), float(d)
+                #t = np.mod(t + 11.4, 360)
+                #d *= 1.19
+                thetas.append(np.deg2rad(t))
+                distances.append(d)
         
         fig = plt.figure()
         ax = fig.add_subplot(projection='polar')
