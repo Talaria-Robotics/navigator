@@ -88,8 +88,8 @@ class SCUTTLE:
         return rows[:-1]
 
     # Format the x,y lidar coordinates so that the bubble-chart can display them
-    def format_row(self, point, r=3):
-        x, y = point
+    def format_row(self, point: complex, r=3):
+        x, y = point.real, point.imag
         return '{x: ' + str(x) + ', y: ' + str(y) + ', r:' + str(r) + '},'
 
     def _dashBoardDataLoop(self):
