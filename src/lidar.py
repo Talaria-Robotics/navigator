@@ -133,8 +133,14 @@ def disconnect():
     lidar.disconnect()
 
 if __name__ == "__main__":
-    from random import random
-    testData = LidarScanData({ 0.0: 000, 0.1: random(), 1.2: random(), 1.9: 100, 2.2: 200, 2.9: random(), 3.0: 300, 3.1: random(), 4.0: 400, })
-    print(testData[0])
-    print(testData[1])
-    print(testData[1:3])
+    while (1):
+        data = cleanScan()._data
+        angles, distances = list(data.keys()), list(data.values())
+        print(list(zip(angles, distances)))
+
+        min_dist = min(distances)
+        print(angles[distances.index(min_dist)], min_dist)
+        print("----")
+        sleep(0.1)
+
+
