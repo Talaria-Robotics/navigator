@@ -1,77 +1,97 @@
-from collections.abc import Generator
 from threading import Thread
 from typing import Union
+from numpy import mod
 from rplidar import RPLidar
-from sys import float_info
-from operator import itemgetter
 from time import sleep
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar: RPLidar
-_scanData = None
+_scanData: dict[float, float] = None
+
+class LidarScanData:
+    _data: dict[float, float]
+
+    def __init__(self, data: dict[float, float]):
+        self._data = data
+
+    def _bisect(self, index: float) -> float:
+        if index < 0 or index >= 360:
+            raise IndexError
+
+        best_diff = float("inf")
+        best_key: float
+
+        for k in self._data:
+            new_diff = abs(index - k)
+            if new_diff < best_diff:
+                best_diff = new_diff
+                best_key = k
+        
+        return best_key
+
+    def __getitem__(self, index: Union[slice, float]):
+        # Check for simple case
+        if not isinstance(index, slice):
+            splitIndex = self._bisect(index)
+            return self._data[splitIndex]
+        
+        # Gonna slice, need to sort dictionary
+        slicedDict: dict[float, float] = {}
+        for k, v in self._data.items():
+            if k >= index.start and k < index.stop:
+                slicedDict[k] = v
+        return LidarScanData(slicedDict)
+    
+    def __setitem__(self, index: float, value: float):
+        self._data.__setitem__(index, value)
+    
+    def __delitem__(self, index: float, value: float):
+        splitIndex = self._bisect(index)
+        self._data.__delitem__(splitIndex, value)
+
+    def __iter__(self):
+        for elem in self._data.items():
+            yield elem
+
+    def __repr__(self):
+        return self._data.__repr__()
+
+    def __str__(self):
+        return self._data.__str__()
+
+    def data(self) -> dict[float, float]:
+        return self._data
 
 def _scanLoop():
     global _scanData
     if _scanData == None:
-        _scanData = [0] * 360
+        _scanData = {}
 
     for scan in lidar.iter_scans():
         for (quality, angle, distance) in scan:
-            clampedAngle = min([359, round(angle)])
+            clampedAngle = mod(angle)
             _scanData[clampedAngle] = distance
 
-def testPrint(data):
-    angles_of_interest = [0, 90, 180, 270]
-    for angle in angles_of_interest:
-        dist = data[angle]
-        print(f"{angle}°: {dist}")
-    
-    nearest_angle = 0
-    nearest_dist = float_info.max
-    for angle, dist in zip(range(len(data)), data):
-        if dist < nearest_dist:
-            nearest_dist = dist
-            nearest_angle = angle
-    print(f"Nearest: {nearest_angle}°, {nearest_dist}")
-    print()
-
-def scan() -> Union[list[float], None]:
+def scan() -> LidarScanData:
     # Wait for scan data to become available
     while _scanData == None:
         sleep(0.1)
-    return _scanData
+    return LidarScanData(_scanData)
 
-def cleanScan() -> Generator[float]:
+def cleanScan() -> LidarScanData:
     """
     Cleans a raw scan and returns data in inches
     """
     data = scan()
-    for angle, dist in enumerate(data):
-        if angle < 90 or angle > 270:
-            continue
-
+    scopedData: LidarScanData = data[90:270]
+    filteredData: dict[float, float] = {}
+    for angle, dist in scopedData:
         # Ignore distances less than ~16 mm
-        if dist < 16.0:
-            yield 0.0
-        else:
+        if dist >= 16.0:
             # Convert mm to in
-            yield dist * 0.0393700787
+            filteredData[angle] = dist * 0.0393700787
+    return LidarScanData(filteredData)
 
-def getNearest() -> tuple[float, float]:
-    data = cleanScan()
-    angle, dist = min(enumerate(data), key=itemgetter(1))
-    return dist, angle
-
-def testCalibrate():
-    data = scan()
-    n = 10
-    for i in range(0, len(data), n):
-        startAngle = i
-        endAngle = i + n
-        dataChunk = data[i:i + n]
-        averageDistance = sum(dataChunk) / n
-        print(f"[{startAngle}, {endAngle}): {averageDistance:.2f}")
-    
 def init():
     global lidar
     # The A1 LIDAR has lots of issues connecting. We'll just keep
@@ -92,7 +112,7 @@ def init():
             print("Waiting for LIDAR to be ready...")
             while True:
                 data = scan()
-                if sum(data) > 0:
+                if sum(data.data().values()) > 0:
                     break
                 sleep(0.5)
 
@@ -113,10 +133,9 @@ def disconnect():
     lidar.stop()
     lidar.disconnect()
 
-
 if __name__ == "__main__":
-    from time import sleep
-
-    init()
-    testCalibrate()
-    disconnect()
+    from random import random
+    testData = LidarScanData({ 0.0: 000, 0.1: random(), 1.2: random(), 1.9: 100, 2.2: 200, 2.9: random(), 3.0: 300, 3.1: random(), 4.0: 400, })
+    print(testData[0])
+    print(testData[1])
+    print(testData[1:3])

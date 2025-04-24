@@ -81,7 +81,7 @@ class SCUTTLE:
         rows = ''
         polar_data = lidar.scan()
 
-        for d,t in zip(polar_data, range(len(polar_data))):
+        for t, d in polar_data:
             cartesian_point = vec.polar2cart(d,t)
             rows += self.format_row(cartesian_point)
 
