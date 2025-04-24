@@ -72,7 +72,8 @@ def _scanLoop():
             _scanData = dict(_rawScanData)
             _rawScanData.clear()
         if distance != 0.0:
-            _rawScanData[angle] = distance
+            # Convert mm to in
+            _rawScanData[angle] = distance * 0.0393700787
 
 def scan() -> LidarScanData:
     # Wait for scan data to become available
@@ -88,10 +89,9 @@ def cleanScan() -> LidarScanData:
     scopedData: LidarScanData = data[90:270]
     filteredData: dict[float, float] = {}
     for angle, dist in scopedData:
-        # Ignore distances less than ~16 mm
-        if dist >= 16.0:
-            # Convert mm to in
-            filteredData[angle] = dist * 0.0393700787
+        # Ignore distances less than ~0.5 in
+        if dist >= 0.5:
+            filteredData[angle] = dist
     return LidarScanData(filteredData)
 
 def init():
