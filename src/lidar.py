@@ -135,6 +135,36 @@ def disconnect():
     lidar.stop()
     lidar.disconnect()
 
+def _cosDeg(thetaDeg: float) -> float:
+    thetaRad = np.deg2rad(thetaDeg)
+    return float(np.cos(thetaRad))
+
+def getMinimumDistances() -> list[float]:
+    global _box
+    if _box != None:
+        return _box
+
+    # Creating the "Box of View"
+    _box = []
+    for x in range(0, 180):
+        value = minimumDistance(x)
+        _box.append(value)
+    
+    return _box
+
+def minimumDistance(angle: float) -> float:
+    x = np.mod(angle, 360.0)
+    
+    if x < 59:
+        return 15 / _cosDeg(x)
+    if x < 90:
+        return 24 / (_cosDeg(90-x))
+    if x < 123:
+        return 24 / (_cosDeg(x-90))
+    if x < 180:
+        return 15 / (_cosDeg(180-x))
+    return 0.0
+
 if __name__ == "__main__":
     if False:
         init()
@@ -146,15 +176,16 @@ if __name__ == "__main__":
         import numpy as np
         import matplotlib.pyplot as plt
 
-        data = {}
+        data: dict[float, float] = {}
         with open("logs\\lidar.csv", 'r') as f:
             for line in f.readlines():
                 t, d = line.split(',')
                 t, d = float(t), float(d)
-                data[tuple] = d
+                data[t] = d
 
         thetas = list([np.deg2rad(t) for t in data.keys()])
         distances = list(data.values())
+        min_distances = [minimumDistance(t) for t in data.keys()]
         data = LidarScanData(data)
         
         print(f"Near wall: {data[0]}")
@@ -163,4 +194,5 @@ if __name__ == "__main__":
         fig = plt.figure()
         ax = fig.add_subplot(projection='polar')
         c = ax.scatter(thetas, distances)
+        ax.scatter(thetas, min_distances)
         plt.show()
