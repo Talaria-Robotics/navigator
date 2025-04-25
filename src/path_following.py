@@ -76,14 +76,19 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
             else:
                 nextStopId = stopQueue.get()
             
-        # Let the UI know we're going to a new stop
-        roomName = floorplan.rooms[nextStopId]
-        print(f"Next stop: {roomName} ({nextStopId})")
-        room = MailRouteRoom(nextStopId, roomName)
-        inTransitEvent = InTransitEvent(room)
-        inTransitEvent.orderNumber = statusesSent
+        transitEvent: MailRouteEvent
+        if nextStopId != None:
+            # Let the UI know we're going to a new stop
+            roomName = floorplan.rooms[nextStopId]
+            print(f"Next stop: {roomName} ({nextStopId})")
+            room = MailRouteRoom(nextStopId, roomName)
+            transitEvent = InTransitEvent(room)    
+        else:
+            # Let the UI know we're going home
+            transitEvent = ReturnHomeEvent()
         
-        emitEvent(inTransitEvent)
+        transitEvent.orderNumber
+        emitEvent(transitEvent)
         statusesSent += 1
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
