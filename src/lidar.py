@@ -72,12 +72,9 @@ def _scanLoop():
             _scanData = dict(_rawScanData)
             _rawScanData.clear()
         if distance != 0.0:
-            # Angle is inverted
-            angle = 360 - angle + 11.4
+            # Un-mirror the image, align with x-y axes, then correct orientation
+            angle = 360 - angle + 11.4 + 90.0
             # Convert mm to in
-            # It should be 0.03937008, but for some reason that's not accurate
-            # 0.03945147679324894514767932489451
-            # 0.03774284786943
             _rawScanData[angle] = distance * 0.03937008
 
 def scan() -> LidarScanData:
@@ -91,9 +88,8 @@ def cleanScan() -> LidarScanData:
     Cleans a raw scan and returns data in inches
     """
     data = scan()
-    scopedData: LidarScanData = data #[90:270]
     filteredData: dict[float, float] = {}
-    for angle, dist in scopedData:
+    for angle, dist in data:
         # Ignore distances less than ~0.5 in
         if dist >= 0.5:
             filteredData[angle] = dist
@@ -150,17 +146,20 @@ if __name__ == "__main__":
         import numpy as np
         import matplotlib.pyplot as plt
 
-        thetas = []
-        distances = []
+        data = {}
         with open("logs\\lidar.csv", 'r') as f:
             for line in f.readlines():
                 t, d = line.split(',')
                 t, d = float(t), float(d)
-                #t = np.mod(t + 11.4, 360)
-                #d *= 1.19
-                thetas.append(np.deg2rad(t))
-                distances.append(d)
+                data[tuple] = d
+
+        thetas = list([np.deg2rad(t) for t in data.keys()])
+        distances = list(data.values())
+        data = LidarScanData(data)
         
+        print(f"Near wall: {data[0]}")
+        print(f"Far wall: {data[270]}")
+
         fig = plt.figure()
         ax = fig.add_subplot(projection='polar')
         c = ax.scatter(thetas, distances)
