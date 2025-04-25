@@ -73,14 +73,8 @@ async def setRoute(request: Request):
     requestedRoute = RequestedMailRoute(request.json)
     print(f"Received route: {requestedRoute.stops}")
     
-    ctx: NavigatorContext = request.app.ctx
     ctx.requestedRoute = requestedRoute
     return json(request.json)
-
-@app.get("/routeStatus")
-async def getRouteStatus(request: Request):
-    ctx: NavigatorContext = request.app.ctx
-    return text(str(ctx.events))
 
 def transitFeedEntry(app: NavigatorApp):
     print("Binding to UDP socket...")
@@ -93,11 +87,11 @@ def transitFeedEntry(app: NavigatorApp):
     sock.bind(("", TRANSITFEED_UDP_PORT))
     print(f"Bound to port {TRANSITFEED_UDP_PORT}")
 
-    while not app.ctx.abortTransitFeed:
+    while not ctx.abortTransitFeed:
         start, addr = sock.recvfrom(512)
         print(f"Connected to Control Panel at {addr}, got {start}")
 
-        transitFeed(app.ctx.requestedRoute, app.ctx.floorplan, app.ctx.bins,
+        transitFeed(ctx.requestedRoute, ctx.floorplan, ctx.bins,
                     lambda e: sendEventToSocket(e, sock, addr),
                     lambda: waitForConfirmationFromSocket(sock))
 
@@ -115,7 +109,7 @@ def waitForConfirmationFromSocket(sock: socket.socket):
 
 @app.main_process_stop
 def shutdown_handler(app: NavigatorApp, loop):
-    app.ctx.abortTransitFeed = True
+    ctx.abortTransitFeed = True
 
     import motor
     motor.drive(0)
