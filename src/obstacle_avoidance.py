@@ -24,12 +24,12 @@ def getMinimumDistances() -> list[float]:
 def minimumDistance(angle: float) -> float:
     x = np.mod(angle, 360.0)
     
-    if x < 59:
+    if x < 25:
         return 15 / _cosDeg(x)
     if x < 90:
-        return 24 / (_cosDeg(90-x))
-    if x < 123:
-        return 24 / (_cosDeg(x-90))
+        return 6 / (_cosDeg(90-x))
+    if x < 155:
+        return 6 / (_cosDeg(x-90))
     if x < 180:
         return 15 / (_cosDeg(180-x))
     return 0.0
