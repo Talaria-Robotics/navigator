@@ -89,7 +89,10 @@ def transitFeedEntry(app: NavigatorApp):
 
     while not ctx.abortTransitFeed:
         start, addr = sock.recvfrom(512)
-        print(f"Connected to Control Panel at {addr}, got {start}")
+        if not start.startswith(b'%ready'):
+            continue
+
+        print(f"Connected to Control Panel at {addr}")
 
         transitFeed(ctx.requestedRoute, ctx.floorplan, ctx.bins,
                     lambda e: sendEventToSocket(e, sock, addr),
@@ -102,9 +105,8 @@ def sendEventToSocket(event: MailRouteEvent, sock: socket.socket, addr: str):
 
 def waitForConfirmationFromSocket(sock: socket.socket):
     while True:
-        # Wait for message starting with '%'
         confirmationData = sock.recv(512)
-        if confirmationData.startswith(b'%'):
+        if confirmationData.startswith(b'%acceptDelivery'):
             break
 
 @app.main_process_stop
@@ -117,7 +119,7 @@ def shutdown_handler(app: NavigatorApp, loop):
     import lidar
     lidar.disconnect()
 
-@app.main_process_start
+@app.after_server_start
 def init(app, loop):
     import lidar
     lidar.init()
