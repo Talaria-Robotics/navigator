@@ -7,8 +7,6 @@ from typing import Callable
 from nav_utils import Pose, discretizePath, normalizeHeading
 from odometry import computeWheelAnglesForTurn, computeWheelAnglesForForward, computeDeltaThetaDeg
 from obstacle_avoidance import nearestWithinBox
-from lidar import init as initLidar
-from lidar import disconnect as disconnectLidar
 import data_log as dl
 from vector import cart2polar
 import numpy as np
@@ -27,8 +25,6 @@ else:
 def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, str],
                 emitEvent: Callable[[MailRouteEvent], None],
                 waitForConfirmation: Callable[[], None]):
-    initLidar()
-
     print("Preparing route...")
     stopIds = [*route.stops.values()]
     _, tripNodes = floorplan.planTrip(stopIds)
@@ -90,7 +86,6 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
         botState = follow_path(botState, pathToFollow, None)
-    disconnectLidar()
 
 def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Pose:
     # Configure data logging
