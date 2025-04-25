@@ -53,8 +53,11 @@ if __name__ == "__main__":
         while True:
             data = cleanScan()
             nearest = dict(nearestWithinBox(data))
-            a = min(nearest, key=nearest.get)
-            r = nearest[a]
-            print(f"Obstacle at {a:.1f}° {r:.2f}\"")
+            if len(nearest) <= 0:
+                print("No obstacles")
+            else:
+                a = min(nearest, key=nearest.get)
+                r = nearest[a]
+                print(f"Obstacle at {a:.1f}° {r:.2f}\"")
     except KeyboardInterrupt:
         disconnect()
