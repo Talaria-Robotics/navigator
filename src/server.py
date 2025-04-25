@@ -50,7 +50,8 @@ async def health(request: Request):
 
 @app.get("/possibleRoute")
 async def getPossibleRouteInfo(request: Request):
-    floorplan = app.ctx.floorplan
+    ctx: NavigatorContext = request.app.ctx
+    floorplan = ctx.floorplan
     routeInfo = PossibleMailRouteInfo()
     routeInfo.id = floorplan.id
     routeInfo.name = floorplan.name
@@ -72,12 +73,14 @@ async def setRoute(request: Request):
     requestedRoute = RequestedMailRoute(request.json)
     print(f"Received route: {requestedRoute.stops}")
     
-    app.ctx.requestedRoute = requestedRoute
+    ctx: NavigatorContext = request.app.ctx
+    ctx.requestedRoute = requestedRoute
     return json(request.json)
 
 @app.get("/routeStatus")
 async def getRouteStatus(request: Request):
-    return text(str(app.ctx.events))
+    ctx: NavigatorContext = request.app.ctx
+    return text(str(ctx.events))
 
 def transitFeedEntry(app: NavigatorApp):
     print("Binding to UDP socket...")
