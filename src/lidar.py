@@ -73,7 +73,7 @@ def _scanLoop():
             _rawScanData.clear()
         if distance != 0.0:
             # Un-mirror the image, align with x-y axes, then correct orientation
-            angle = 360 - angle + 11.4 + 90.0
+            angle = np.mod(360 - angle + 11.4 + 90.0)
             # Convert mm to in
             _rawScanData[angle] = distance * 0.03937008
 
