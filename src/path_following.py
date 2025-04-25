@@ -87,7 +87,7 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
             # Let the UI know we're going home
             transitEvent = ReturnHomeEvent()
         
-        transitEvent.orderNumber
+        transitEvent.orderNumber = statusesSent
         emitEvent(transitEvent)
         statusesSent += 1
 
