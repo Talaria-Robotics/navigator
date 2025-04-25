@@ -93,6 +93,11 @@ def transitFeed(route: RequestedMailRoute, floorplan: FloorMap, bins: dict[int, 
 
         pathToFollow: Path = floorplan.getShortestAdjacentPath(currentNodeId, nextNodeId)
         botState = follow_path(botState, pathToFollow, None)
+    
+    print("Completed route!")
+    doneEvent = DoneEvent()
+    doneEvent.orderNumber = statusesSent
+    emitEvent(doneEvent)
 
 def follow_path(botState: Pose, path: Path, logSession: dl.DataLogSession) -> Pose:
     # Configure data logging

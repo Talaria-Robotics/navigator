@@ -88,8 +88,8 @@ def transitFeedEntry(app: NavigatorApp):
     print(f"Bound to port {TRANSITFEED_UDP_PORT}")
 
     while not ctx.abortTransitFeed:
-        start, addr = sock.recvfrom(512)
-        if not start.startswith(b'%ready'):
+        msg, addr = sock.recvfrom(512)
+        if not msg.startswith(b'%ready'):
             continue
 
         print(f"Connected to Control Panel at {addr}")

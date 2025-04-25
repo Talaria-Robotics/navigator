@@ -1,5 +1,5 @@
 from models import *
-from typing import Dict, List, Union, Optional
+from typing import Optional
 
 class MailRouteEvent(Serializable):
     disc: str
@@ -29,3 +29,7 @@ class InTransitEvent(MailRouteEvent):
 class ReturnHomeEvent(MailRouteEvent):
     def __init__(self) -> None:
         super().__init__("ReturnHome")
+
+class DoneEvent(MailRouteEvent):
+    def __init__(self) -> None:
+        super().__init__("Done")
