@@ -208,10 +208,11 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             dataEntries.append([angleL, angleR, angDispL, angDispR, dThetaL, dThetaR])
 
             # Stop if obstacles are detected
-            #while nearestWithinBox() != None:
-            #    drive(0)
-            #    print("Obstacle detected")
-            #    pass
+            while len(list(nearestWithinBox())) > 3:
+               drive(0)
+               print("Obstacle detected")
+               sleep(0.5)
+               pass
 
     except KeyboardInterrupt:
         drive(0)
@@ -247,7 +248,7 @@ if __name__ == "__main__":
         print(f"Sending event {eventStr}")
 
     def waitForConfirmationDebug():
-        print("Waiting for confirmation...")
+        input("Waiting for confirmation...")
 
     route = RequestedMailRoute()
     route.stops = {

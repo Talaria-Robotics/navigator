@@ -36,7 +36,7 @@ def minimumDistance(angle: float) -> float:
 
 def nearestWithinBox(scanData: Union[LidarScanData, None] = None) -> Iterator[tuple[float, float]]:
     """
-    Returns the angle and distance of all obstacle within the box window.
+    Returns the angle and distance of all obstacles within the box window.
     """
     if scanData == None:
         scanData = cleanScan()
