@@ -175,14 +175,18 @@ def driveToAngularDisplacement(targetAngDispL: float, targetAngDispR: float,
             targetDeltaL, targetDeltaR = targetAngDispL - angDispL, targetAngDispR - angDispR
             #print(f"Disp remaining: {targetDeltaL:.1f} {targetDeltaR:.1f}\t\t{motorSpeedL:.1f} {motorSpeedR:.1f}")
 
-            if isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01):
+            reachedTargetL = isTargetReached(lastTargetDeltaL, targetDeltaL, 0.01)
+            if reachedTargetL:
                 doneL = True
                 motorSpeedL = 0.0
-            driveRight(motorSpeedL)
 
-            if isTargetReached(lastTargetDeltaR, targetDeltaR, 0.01):
+            reachedTargetR = isTargetReached(lastTargetDeltaR, targetDeltaR, 0.01)
+            if reachedTargetR:
                 doneR = True
                 motorSpeedR = 0.0
+            
+            # This in intentionally swapped.
+            driveRight(motorSpeedL)
             driveLeft(motorSpeedR)
 
             if doneL and doneR:
