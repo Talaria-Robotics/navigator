@@ -26,8 +26,10 @@ class NavigatorContext:
     requestedRoute: RequestedMailRoute
     events: SimpleQueue = SimpleQueue()
     transitFeedSock: socket.socket
+    abortTransitFeed: bool
 
 ctx = NavigatorContext()
+ctx.abortTransitFeed = False
 ctx.floorplan = FloorMap(os.path.join("maps", "PIC_Sample_Map.floormap"))
 ctx.bins = {
     1: "Letter Slot 1",
@@ -36,7 +38,9 @@ ctx.bins = {
     14: "Package Area",
 }
 
-app = Sanic("talaria_navigator",
+NavigatorApp = Sanic[Config, NavigatorContext]
+
+app: NavigatorApp = Sanic("talaria_navigator",
     dumps=custom_dumps, loads=loads,
     ctx=ctx)    
 
@@ -75,7 +79,7 @@ async def setRoute(request: Request):
 async def getRouteStatus(request: Request):
     return text(str(app.ctx.events))
 
-def transitFeedEntry(app: Sanic[Config, NavigatorContext]):
+def transitFeedEntry(app: NavigatorApp):
     print("Binding to UDP socket...")
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -86,53 +90,13 @@ def transitFeedEntry(app: Sanic[Config, NavigatorContext]):
     sock.bind(("", TRANSITFEED_UDP_PORT))
     print(f"Bound to port {TRANSITFEED_UDP_PORT}")
 
-    start, addr = sock.recvfrom(512)
-    print(f"Connected to Control Panel at {addr}, got {start}")
+    while not app.ctx.abortTransitFeed:
+        start, addr = sock.recvfrom(512)
+        print(f"Connected to Control Panel at {addr}, got {start}")
 
-    if True:
         transitFeed(app.ctx.requestedRoute, app.ctx.floorplan, app.ctx.bins,
                     lambda e: sendEventToSocket(e, sock, addr),
                     lambda: waitForConfirmationFromSocket(sock))
-    else:
-        # DEMO
-        import time
-        print("Preparing route...")
-        floorplan = app.ctx.floorplan
-        stopIds = [*app.ctx.requestedRoute.stops.values()]
-        tripStops = floorplan.planTrip(stopIds)
-        print(f"Planned route: {tripStops}")
-
-        for binNumber, roomId in app.ctx.requestedRoute.stops.items():
-            roomName = app.ctx.floorplan.rooms[roomId]
-            room = MailRouteRoom(roomId, roomName)
-            
-            binName = app.ctx.bins[binNumber]
-            bin = MailBin(binNumber, binName)
-
-            app.ctx.events.put(InTransitEvent(room))
-            app.ctx.events.put(ArrivedAtStopEvent(room, bin))
-        
-        app.ctx.events.put(ReturnHomeEvent())
-        
-        statusesSent = 0
-        nextStopIndex = 0
-
-        while not app.ctx.events.empty():
-            event: MailRouteEvent = app.ctx.events.get()
-            event.orderNumber = statusesSent
-            
-            sendEventToSocket(event, sock, addr)
-            print(f"Sent #{statusesSent}")
-            statusesSent += 1
-            
-            if type(event) is ArrivedAtStopEvent:
-                # Wait for recipient to confirm
-                waitForConfirmationFromSocket(sock)
-                print(f"Package received")
-                nextStopIndex += 1
-            else:
-                time.sleep(4)
-        # END DEMO
 
 def sendEventToSocket(event: MailRouteEvent, sock: socket.socket, addr: str):
     eventStr = dumps(event, default=vars)
@@ -147,7 +111,9 @@ def waitForConfirmationFromSocket(sock: socket.socket):
             break
 
 @app.main_process_stop
-def shutdown_handler(app, loop):
+def shutdown_handler(app: NavigatorApp, loop):
+    app.ctx.abortTransitFeed = True
+
     import motor
     motor.drive(0)
 
