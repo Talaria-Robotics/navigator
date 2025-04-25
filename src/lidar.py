@@ -6,6 +6,7 @@ from time import sleep
 
 PORT_NAME = '/dev/ttyUSB0'
 lidar: RPLidar
+_abort = False
 _rawScanData: dict[float, float] = {}
 _scanData: dict[float, float] = None
 
@@ -68,6 +69,8 @@ def _scanLoop():
     global _rawScanData
 
     for (new_scan, quality, angle, distance) in lidar.iter_measures(scan_type='express'):
+        if _abort:
+            return
         if new_scan:
             _scanData = dict(_rawScanData)
             _rawScanData.clear()
@@ -131,6 +134,8 @@ def init():
 
 def disconnect():
     global lidar
+    global _abort
+    _abort = True
     lidar.stop_motor()
     lidar.stop()
     lidar.disconnect()

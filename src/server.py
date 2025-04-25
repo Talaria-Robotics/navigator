@@ -146,6 +146,14 @@ def waitForConfirmationFromSocket(sock: socket.socket):
         if confirmationData.startswith(b'%'):
             break
 
+@app.signal("server.shutdown.before")
+def shutdown_handler(app, loop):
+    import motor
+    motor.drive(0)
+    
+    import lidar
+    lidar.disconnect()
+
 thread = threading.Thread(target=transitFeedEntry)
 thread.start()
 print("Initialization complete")
