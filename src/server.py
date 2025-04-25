@@ -1,7 +1,7 @@
 from models import *
 from mail_route_events import *
 from floormap import FloorMap
-from sanic import Sanic, text, json, Request
+from sanic import Config, Sanic, text, json, Request
 from orjson import dumps, loads
 from queue import SimpleQueue
 from path_following import transitFeed
@@ -75,7 +75,7 @@ async def setRoute(request: Request):
 async def getRouteStatus(request: Request):
     return text(str(app.ctx.events))
 
-def transitFeedEntry():
+def transitFeedEntry(app: Sanic[Config, NavigatorContext]):
     print("Binding to UDP socket...")
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -155,11 +155,11 @@ def shutdown_handler(app, loop):
     lidar.disconnect()
 
 @app.main_process_start
-def init():
+def init(app, loop):
     import lidar
     lidar.init()
-    
-    thread = threading.Thread(target=transitFeedEntry)
+
+    thread = threading.Thread(target=transitFeedEntry, args=(app,))
     thread.start()
     print("Initialization complete")
 
