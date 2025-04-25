@@ -51,9 +51,10 @@ if __name__ == "__main__":
     init()
     try:
         while True:
-            nearest = nearestWithinBox()
-            for obstacle in nearest:
-                a, r = obstacle
-                print(f"Obstacle at {a:.1f}° {r:.2f}\"")
+            data = cleanScan()
+            nearest = dict(nearestWithinBox(data))
+            a = min(nearest, key=nearest.get)
+            r = nearest[a]
+            print(f"Obstacle at {a:.1f}° {r:.2f}\"")
     except KeyboardInterrupt:
         disconnect()
