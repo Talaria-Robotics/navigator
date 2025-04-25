@@ -1,6 +1,6 @@
 from threading import Thread
 from typing import Union
-from numpy import mod
+import numpy as np
 from rplidar import RPLidar
 from time import sleep
 
